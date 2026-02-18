@@ -21,7 +21,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        if (\Schema::hasTable('smtp_settings')) {
+        if (app()->runningInConsole()) {
+            return;
+        }
+
+        try {
+            if (\Schema::hasTable('smtp_settings')) {
            $smtpsetting = SmtpSetting::first();
 
            if ($smtpsetting) {
@@ -40,7 +45,11 @@ class AppServiceProvider extends ServiceProvider
               Config::set('mail',$data);
            }
 
-        } // end if
+            }
+        } catch (\Throwable $e) {
+            // Skip boot-time DB access when database is unavailable (e.g., build/deploy)
+            return;
+        }
         
 
 

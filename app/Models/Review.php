@@ -21,11 +21,41 @@ class Review extends Model
 
     protected $appends = ['average_rating', 'formatted_date'];
 
+    /**
+     * Legacy Blade/API aliases (DB columns are rating_*, review_text, owner_response).
+     */
+    public function getOverallRatingAttribute(): int
+    {
+        return (int) ($this->attributes['rating_overall'] ?? 5);
+    }
+
+    public function getReviewAttribute(): ?string
+    {
+        return $this->attributes['review_text'] ?? null;
+    }
+
+    public function getTitleAttribute(): ?string
+    {
+        return null;
+    }
+
+    public function getManagerResponseAttribute(): ?string
+    {
+        return $this->attributes['owner_response'] ?? null;
+    }
+
+    public function getStayDateAttribute()
+    {
+        return $this->relationLoaded('booking') && $this->booking
+            ? $this->booking->check_in
+            : null;
+    }
+
     // Calculate average of all rating dimensions
     public function getAverageRatingAttribute()
     {
-        return round(($this->rating_overall + $this->rating_cleanliness + $this->rating_location + 
-                $this->rating_service + $this->rating_value + $this->rating_amenities + 
+        return round(($this->rating_overall + $this->rating_cleanliness + $this->rating_location +
+                $this->rating_service + $this->rating_value + $this->rating_amenities +
                 $this->rating_comfort) / 7, 1);
     }
 
@@ -100,11 +130,13 @@ class Review extends Model
     // Mark as helpful
     public function markHelpful($userId)
     {
-        if (!$this->isHelpfulBy($userId)) {
+        if (! $this->isHelpfulBy($userId)) {
             $this->helpfulVotes()->create(['user_id' => $userId]);
             $this->increment('helpful_count');
+
             return true;
         }
+
         return false;
     }
 
@@ -114,8 +146,10 @@ class Review extends Model
         if ($this->isHelpfulBy($userId)) {
             $this->helpfulVotes()->where('user_id', $userId)->delete();
             $this->decrement('helpful_count');
+
             return true;
         }
+
         return false;
     }
 }

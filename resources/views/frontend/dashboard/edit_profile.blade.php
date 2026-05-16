@@ -1,131 +1,81 @@
-@extends('frontend.main_master')
-@section('main')
+@extends('frontend.dashboard.account_master')
 
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+@section('account_title', __('frontend.account.title_profile'))
 
-  <!-- Inner Banner -->
-  <div class="inner-banner inner-bg6">
-    <div class="container">
-        <div class="inner-title">
-            <ul>
-                <li>
-                    <a href="index.html">Home</a>
-                </li>
-                <li><i class='bx bx-chevron-right'></i></li>
-                <li>User Dashboard </li>
-            </ul>
-            <h3>User Dashboard</h3>
-        </div>
+@section('account_content')
+    <div class="service-article-title">
+        <h2>Profile & settings</h2>
     </div>
-</div>
-<!-- Inner Banner End -->
-
-<!-- Service Details Area -->
-<div class="service-details-area pt-100 pb-70">
-    <div class="container">
-        <div class="row">
-             <div class="col-lg-3">
-
-                @include('frontend.dashboard.user_menu')
-
-            </div>
-
-
-            <div class="col-lg-9">
-                <div class="service-article">
-                    
-
-    <section class="checkout-area pb-70">
-    <div class="container">
+    <div class="service-article-content">
         <form action="{{ route('profile.store') }}" method="post" enctype="multipart/form-data">
             @csrf
-
-            <div class="row">
-                <div class="col-lg-12 col-md-12">
-                    <div class="billing-details">
-                        <h3 class="title">User Profile   </h3>
-
-                        <div class="row">
-                           
-        <div class="col-lg-6 col-md-6">
-            <div class="form-group">
-                <label>Name <span class="required">*</span></label>
-                <input type="text" name="name"  class="form-control" value="{{ $profileData->name }}">
-            </div>
-        </div>
-
-        <div class="col-lg-6 col-md-6">
-            <div class="form-group">
-                <label>Email <span class="required">*</span></label>
-                <input type="email" name="email" class="form-control" value="{{ $profileData->email }}">
-            </div>
-        </div>
-
-         
-        <div class="col-lg-6 col-md-6">
-            <div class="form-group">
-                <label> Address <span class="required">*</span></label>
-                <input type="text" name="address" class="form-control" value="{{ $profileData->address }}">
-            </div>
-        </div>
-
-        <div class="col-lg-6 col-md-6">
-            <div class="form-group">
-                <label>Phone <span class="required">*</span></label>
-                <input type="text" name="phone" class="form-control" value="{{ $profileData->phone }}">
-            </div>
-        </div>
-
-
-
-<div class="col-lg-12 col-md-6">
-<div class="form-group">
-    <label>User Profile  <span class="required">*</span></label>
-    <input type="file" name="photo" class="form-control"  id="image">
-</div>
-</div>
-
-<div class="col-lg-12 col-md-6">
-<div class="form-group">
-    <label>  <span class="required"> </span></label>
-    <img id="showImage" src="{{ (!empty($profileData->photo)) ? url('upload/user_images/'.$profileData->photo) : url('upload/no_image.jpg') }}" alt="Admin" class="rounded-circle p-1 bg-primary" width="80">
-</div>
-</div>
-
-<button type="submit" class="btn btn-danger">Save Changes </button>
-</div>
-</div>
-</div>
-</div>
-</form>      
-        
-    </div>
-</section>
-                    
+            <div class="billing-details border-0 shadow-none p-0">
+                <h3 class="title">Your details</h3>
+                <div class="row">
+                    <div class="col-lg-6 col-md-6">
+                        <div class="form-group">
+                            <label>Name <span class="required">*</span></label>
+                            <input type="text" name="name" class="form-control" value="{{ $profileData->name }}" required>
+                        </div>
+                    </div>
+                    <div class="col-lg-6 col-md-6">
+                        <div class="form-group">
+                            <label>Email <span class="required">*</span></label>
+                            <input type="email" name="email" class="form-control" value="{{ $profileData->email }}" required>
+                        </div>
+                    </div>
+                    <div class="col-lg-6 col-md-6">
+                        <div class="form-group">
+                            <label>Address <span class="required">*</span></label>
+                            <input type="text" name="address" class="form-control" value="{{ $profileData->address }}">
+                        </div>
+                    </div>
+                    <div class="col-lg-6 col-md-6">
+                        <div class="form-group">
+                            <label>Phone <span class="required">*</span></label>
+                            <input type="text" name="phone" class="form-control" value="{{ $profileData->phone }}">
+                        </div>
+                    </div>
+                    <div class="col-lg-12 col-md-12">
+                        <div class="form-group">
+                            <label for="image">Profile photo</label>
+                            <input type="file" name="photo" class="form-control" id="image" accept="image/*">
+                        </div>
+                    </div>
+                    <div class="col-lg-12 col-md-12">
+                        <div class="form-group">
+                            <label class="d-block">Preview</label>
+                            <img id="showImage"
+                                 src="{{ !empty($profileData->photo) ? url('upload/user_images/'.$profileData->photo) : url('upload/no_image.jpg') }}"
+                                 alt=""
+                                 class="rounded-circle border"
+                                 style="width: 80px; height: 80px; object-fit: cover;">
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary">Save changes</button>
+                    </div>
                 </div>
             </div>
-
-           
-        </div>
+        </form>
     </div>
-</div>
-<!-- Service Details Area End -->
 
-
-<script type="text/javascript">
-
-    $(document).ready(function(){
-        $('#image').change(function(e){
-            var reader = new FileReader();
-            reader.onload = function(e){
-                $('#showImage').attr('src',e.target.result);
-            }
-            reader.readAsDataURL(e.target.files['0']);
-        });
-    });
-
-    </script>      
-
-
-
+    @push('nexstay-page-scripts')
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                var input = document.getElementById('image');
+                var img = document.getElementById('showImage');
+                if (!input || !img) return;
+                input.addEventListener('change', function (e) {
+                    var file = e.target.files && e.target.files[0];
+                    if (!file) return;
+                    var reader = new FileReader();
+                    reader.onload = function (ev) {
+                        img.setAttribute('src', ev.target.result);
+                    };
+                    reader.readAsDataURL(file);
+                });
+            });
+        </script>
+    @endpush
 @endsection

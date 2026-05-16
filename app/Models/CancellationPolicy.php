@@ -44,13 +44,13 @@ class CancellationPolicy extends Model
     public function calculateRefundPercentage($hoursBeforeCheckIn)
     {
         $rules = collect($this->rules)->sortByDesc('hours');
-        
+
         foreach ($rules as $rule) {
             if ($hoursBeforeCheckIn >= $rule['hours']) {
                 return $rule['percentage'];
             }
         }
-        
+
         return 0;
     }
 
@@ -61,11 +61,11 @@ class CancellationPolicy extends Model
     {
         $descriptions = [];
         $rules = collect($this->rules)->sortByDesc('hours');
-        
+
         foreach ($rules as $rule) {
             $hours = $rule['hours'];
             $percentage = $rule['percentage'];
-            
+
             if ($hours >= 168) {
                 $days = floor($hours / 24);
                 $descriptions[] = "{$percentage}% refund if cancelled {$days}+ days before check-in";
@@ -78,8 +78,30 @@ class CancellationPolicy extends Model
                 $descriptions[] = "{$percentage}% refund for last-minute cancellations";
             }
         }
-        
+
         return $descriptions;
+    }
+
+    /**
+     * Fallback policy when a room has no explicit cancellation_policy_id.
+     */
+    public static function getDefault(): ?self
+    {
+        return static::query()->where('is_active', true)->orderBy('id')->first();
+    }
+
+    /**
+     * Short text for API / AJAX consumers (e.g. room policy modal).
+     */
+    public function getSummary(): ?string
+    {
+        if (! empty($this->description)) {
+            return $this->description;
+        }
+
+        $lines = $this->readable_rules;
+
+        return is_array($lines) && count($lines) ? implode(' ', $lines) : null;
     }
 
     // Predefined policies

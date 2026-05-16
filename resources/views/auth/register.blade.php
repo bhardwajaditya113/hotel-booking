@@ -7,12 +7,12 @@
             <div class="inner-title">
                 <ul>
                     <li>
-                        <a href="index.html">Home</a>
+                        <a href="{{ url('/') }}">Home</a>
                     </li>
-                    <li><i class='bx bx-chevron-right'></i></li>
-                    <li>Sign Up</li>
+                    <li><i class='bx bx-chevron-right' aria-hidden="true"></i></li>
+                    <li aria-current="page">Create account</li>
                 </ul>
-                <h3>Sign Up</h3>
+                <h3>Create account</h3>
             </div>
         </div>
     </div>
@@ -26,8 +26,9 @@
                     <div class="user-all-form">
                         <div class="contact-form">
                             <div class="section-title text-center">
-                                <span class="sp-color">Sign Up</span>
-                                <h2>Create an Account!</h2>
+                                <span class="sp-color">{{ __('site.auth.join_brand', ['name' => config('app.name', 'Elapse')]) }}</span>
+                                <h2>Create your account</h2>
+                                <p class="small mt-2 mb-0">Save wishlists, message hosts, and book faster next time.</p>
                             </div>
 
     <form method="POST" action="{{ route('register') }}">
@@ -36,38 +37,42 @@
         <div class="row">
             <div class="col-lg-12 ">
                 <div class="form-group">
-                    <input type="text" name="name" id="name" class="form-control" required data-error="Please enter your Username" placeholder="Username">
+                    <label class="form-label" for="name">Full name</label>
+                    <input type="text" name="name" id="name" class="form-control" required autocomplete="name" placeholder="Your name">
                 </div>
             </div>
 
             <div class="col-lg-12">
                 <div class="form-group">
-                    <input type="email" name="email" id="email" class="form-control" required data-error="Please enter email" placeholder="Email">
+                    <label class="form-label" for="email">Email</label>
+                    <input type="email" name="email" id="email" class="form-control" required autocomplete="email" placeholder="you@example.com">
                 </div>
             </div>
 
             <div class="col-lg-12">
                 <div class="form-group">
-                    <input type="password" name="password" id="password" class="form-control" required data-error="Please enter email" placeholder="password">
+                    <label class="form-label" for="password">Password</label>
+                    <input type="password" name="password" id="password" class="form-control" required autocomplete="new-password" placeholder="At least 8 characters">
                 </div>
             </div>
 
             <div class="col-12">
                 <div class="form-group">
-                    <input class="form-control" type="password" name="password_confirmation" id="password_confirmation" placeholder="Confirm Password">
+                    <label class="form-label" for="password_confirmation">Confirm password</label>
+                    <input class="form-control" type="password" name="password_confirmation" id="password_confirmation" required autocomplete="new-password" placeholder="Repeat password">
                 </div>
             </div>
 
             <div class="col-lg-12 col-md-12 text-center">
-                <button type="submit" class="default-btn btn-bg-three border-radius-5">
-                    Sign Up
+                <button type="submit" class="default-btn btn-bg-three border-radius-5 w-100 w-md-auto">
+                    Create account
                 </button>
             </div>
 
             <div class="col-12">
                 <p class="account-desc">
                     Already have an account? 
-                    <a href="{{ route('login') }}">Sign In</a>
+                    <a href="{{ route('login') }}">Sign in</a>
                 </p>
             </div>
         </div>

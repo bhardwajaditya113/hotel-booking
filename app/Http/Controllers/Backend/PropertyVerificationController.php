@@ -70,7 +70,7 @@ class PropertyVerificationController extends Controller
             ? 'Property verified successfully!' 
             : 'Property verification rejected.';
 
-        return redirect()->route('admin.verification.properties')
+        return redirect()->route('admin.verification.properties.index')
             ->with('success', $message);
     }
 

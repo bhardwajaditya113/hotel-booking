@@ -1,0 +1,985 @@
+/**
+ * Elapse — guest portal: minimal leisure, maximum readability.
+ * Scope: body.portal-guest.nex-future
+ * Light surfaces, calm accents, no low-opacity body copy.
+ */
+
+:root {
+  --nx-canvas: #f4f6f8;
+  --nx-surface: #ffffff;
+  --nx-surface-2: #f8fafc;
+  --nx-border: #e2e8f0;
+  --nx-border-strong: #cbd5e1;
+  --nx-ink: #0f172a;
+  --nx-ink-soft: #1e293b;
+  --nx-body: #334155;
+  --nx-muted: #475569;
+  --nx-faint: #64748b;
+  --nx-accent: #0d9488;
+  --nx-accent-hover: #0f766e;
+  --nx-accent-soft: rgba(13, 148, 136, 0.12);
+  --nx-radius-xl: 20px;
+  --nx-radius-lg: 14px;
+  --nx-radius-md: 10px;
+  --nx-font-sans: 'DM Sans', system-ui, sans-serif;
+  --nx-font-display: 'Outfit', var(--nx-font-sans);
+  --nx-track: -0.02em;
+  --nx-shadow: 0 10px 40px rgba(15, 23, 42, 0.06);
+  --nx-shadow-sm: 0 4px 14px rgba(15, 23, 42, 0.05);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* ---------- Base: light canvas, dark type ---------- */
+body.portal-guest.nex-future {
+  font-family: var(--nx-font-sans) !important;
+  color: var(--nx-body) !important;
+  background: var(--nx-canvas) !important;
+  background-image: none !important;
+  background-attachment: scroll !important;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-size: 1.0625rem;
+  line-height: 1.65;
+}
+
+body.portal-guest.nex-future h1,
+body.portal-guest.nex-future h2,
+body.portal-guest.nex-future h3,
+body.portal-guest.nex-future h4,
+body.portal-guest.nex-future h5,
+body.portal-guest.nex-future .section-title h2,
+body.portal-guest.nex-future .inner-title h3 {
+  font-family: var(--nx-font-display) !important;
+  color: var(--nx-ink) !important;
+  font-weight: 700 !important;
+  letter-spacing: var(--nx-track) !important;
+}
+
+body.portal-guest.nex-future p,
+body.portal-guest.nex-future .section-title p,
+body.portal-guest.nex-future li,
+body.portal-guest.nex-future .lead {
+  color: var(--nx-body) !important;
+}
+
+body.portal-guest.nex-future small,
+body.portal-guest.nex-future .small,
+body.portal-guest.nex-future .text-muted {
+  color: var(--nx-muted) !important;
+  opacity: 1 !important;
+}
+
+body.portal-guest.nex-future a:not(.default-btn):not(.btn):not(.dropdown-item) {
+  color: var(--nx-accent) !important;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+body.portal-guest.nex-future a:not(.default-btn):not(.btn):not(.dropdown-item):hover {
+  color: var(--nx-accent-hover) !important;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* ---------- Preloader ---------- */
+body.portal-guest.nex-future .preloader {
+  background: var(--nx-surface) !important;
+  animation: nx-preloader-out 0.55s ease 0.35s forwards;
+}
+
+body.portal-guest.nex-future .preloader .sk-cube {
+  background: var(--nx-accent) !important;
+}
+
+@keyframes nx-preloader-out {
+  to {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+}
+
+/* ---------- Top bar ---------- */
+body.portal-guest.nex-future .top-header,
+body.portal-guest.nex-future .top-header-bg {
+  background: var(--nx-surface) !important;
+  border-bottom: 1px solid var(--nx-border) !important;
+}
+
+body.portal-guest.nex-future .top-header .header-right ul li,
+body.portal-guest.nex-future .top-header .header-right ul li a {
+  color: var(--nx-ink-soft) !important;
+}
+
+body.portal-guest.nex-future .top-header .header-right ul li i {
+  color: var(--nx-accent) !important;
+}
+
+body.portal-guest.nex-future .language-list-item {
+  background: var(--nx-surface-2) !important;
+  border: 1px solid var(--nx-border) !important;
+  color: var(--nx-ink) !important;
+  border-radius: 999px !important;
+}
+
+/* ---------- Navbar ---------- */
+body.portal-guest.nex-future .navbar-area {
+  background: transparent !important;
+}
+
+body.portal-guest.nex-future .navbar-area .main-nav {
+  background: rgba(255, 255, 255, 0.96) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--nx-border) !important;
+  border-radius: var(--nx-radius-xl) !important;
+  margin-top: 0.75rem !important;
+  margin-bottom: 0.75rem !important;
+  box-shadow: var(--nx-shadow-sm);
+}
+
+body.portal-guest.nex-future .mobile-nav {
+  background: var(--nx-surface) !important;
+  border-bottom: 1px solid var(--nx-border) !important;
+}
+
+body.portal-guest.nex-future .navbar-light .navbar-brand span,
+body.portal-guest.nex-future .mobile-nav .logo span {
+  color: var(--nx-ink) !important;
+  font-family: var(--nx-font-display) !important;
+  letter-spacing: var(--nx-track);
+}
+
+/* Brand mark: never stretch a wide property photo across the nav bar */
+body.portal-guest.nex-future .navbar-light .navbar-brand img,
+body.portal-guest.nex-future .mobile-nav .logo img {
+  max-height: 44px;
+  width: auto;
+  max-width: 180px;
+  object-fit: contain;
+  object-position: left center;
+}
+
+body.portal-guest.nex-future .footer-logo img,
+body.portal-guest.nex-future .nx-footer-logo {
+  max-height: 52px;
+  width: auto;
+  max-width: 200px;
+  object-fit: contain;
+  object-position: left center;
+}
+
+
+body.portal-guest.nex-future .navbar-light .navbar-nav .nav-link {
+  color: var(--nx-ink-soft) !important;
+  font-weight: 600 !important;
+  font-size: 0.95rem !important;
+  border-radius: 999px !important;
+  padding: 0.5rem 1rem !important;
+  margin: 0 0.1rem;
+}
+
+body.portal-guest.nex-future .navbar-light .navbar-nav .nav-link:hover,
+body.portal-guest.nex-future .navbar-light .navbar-nav .nav-link.active {
+  color: var(--nx-accent) !important;
+  background: var(--nx-accent-soft) !important;
+}
+
+body.portal-guest.nex-future .navbar-area .dropdown-menu {
+  background: var(--nx-surface) !important;
+  border: 1px solid var(--nx-border) !important;
+  border-radius: var(--nx-radius-md) !important;
+  box-shadow: var(--nx-shadow) !important;
+  padding: 0.5rem !important;
+}
+
+body.portal-guest.nex-future .navbar-area .dropdown-menu .dropdown-item {
+  color: var(--nx-ink-soft) !important;
+  border-radius: 8px !important;
+  font-weight: 500;
+}
+
+body.portal-guest.nex-future .navbar-area .dropdown-menu .dropdown-item:hover {
+  background: var(--nx-surface-2) !important;
+  color: var(--nx-ink) !important;
+}
+
+/* ---------- Buttons (CTAs) ---------- */
+body.portal-guest.nex-future .default-btn.btn-bg-one,
+body.portal-guest.nex-future .default-btn.btn-bg-three {
+  background: var(--nx-accent) !important;
+  border: none !important;
+  color: #fff !important;
+  font-family: var(--nx-font-display) !important;
+  font-weight: 700 !important;
+  font-size: 0.9rem !important;
+  letter-spacing: 0.02em;
+  border-radius: 999px !important;
+  padding: 0.65rem 1.5rem !important;
+  box-shadow: none !important;
+}
+
+body.portal-guest.nex-future .default-btn.btn-bg-one:hover,
+body.portal-guest.nex-future .default-btn.btn-bg-three:hover {
+  background: var(--nx-accent-hover) !important;
+  filter: none;
+}
+
+body.portal-guest.nex-future .default-btn.btn-bg-two {
+  background: var(--nx-surface) !important;
+  border: 1px solid var(--nx-border-strong) !important;
+  color: var(--nx-ink-soft) !important;
+  border-radius: 999px !important;
+  font-weight: 600 !important;
+}
+
+body.portal-guest.nex-future .default-btn.btn-bg-two:hover {
+  background: var(--nx-surface-2) !important;
+  border-color: var(--nx-accent) !important;
+  color: var(--nx-accent) !important;
+}
+
+/* ---------- Inner banners (photo backgrounds): high-contrast titles ---------- */
+body.portal-guest.nex-future .inner-banner {
+  border-radius: 0 0 var(--nx-radius-xl) var(--nx-radius-xl);
+  overflow: hidden;
+  position: relative;
+}
+
+body.portal-guest.nex-future .inner-banner::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(15, 23, 42, 0.35) 0%,
+    rgba(15, 23, 42, 0.55) 100%
+  );
+  pointer-events: none;
+}
+
+body.portal-guest.nex-future .inner-banner .inner-title {
+  position: relative;
+  z-index: 2;
+}
+
+body.portal-guest.nex-future .inner-title ul li,
+body.portal-guest.nex-future .inner-title ul li a {
+  color: #f1f5f9 !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+  font-weight: 500;
+}
+
+body.portal-guest.nex-future .inner-title ul li a:hover {
+  color: #fff !important;
+}
+
+body.portal-guest.nex-future .inner-title h3 {
+  color: #fff !important;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.5);
+}
+
+/* ---------- Surfaces: forms, sidebars, cards ---------- */
+body.portal-guest.nex-future .contact-form,
+body.portal-guest.nex-future .user-all-form .contact-form,
+body.portal-guest.nex-future .service-article,
+body.portal-guest.nex-future .service-side-bar,
+body.portal-guest.nex-future .billing-details,
+body.portal-guest.nex-future .checkout-area .billing-details,
+body.portal-guest.nex-future .card:not(.border-0) {
+  background: var(--nx-surface) !important;
+  border: 1px solid var(--nx-border) !important;
+  border-radius: var(--nx-radius-lg) !important;
+  box-shadow: var(--nx-shadow-sm) !important;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+body.portal-guest.nex-future .services-bar-widget .title {
+  background: transparent !important;
+  color: var(--nx-ink) !important;
+  font-family: var(--nx-font-display) !important;
+  font-weight: 700 !important;
+  border-bottom: 1px solid var(--nx-border);
+  padding-bottom: 0.75rem !important;
+}
+
+body.portal-guest.nex-future .form-control,
+body.portal-guest.nex-future .contact-form .form-group input,
+body.portal-guest.nex-future .contact-form .form-group textarea,
+body.portal-guest.nex-future .form-select,
+body.portal-guest.nex-future select {
+  background: #fff !important;
+  border: 1px solid var(--nx-border-strong) !important;
+  color: var(--nx-ink) !important;
+  border-radius: var(--nx-radius-md) !important;
+  font-size: 1rem !important;
+}
+
+body.portal-guest.nex-future .form-control::placeholder {
+  color: var(--nx-faint) !important;
+  opacity: 1 !important;
+}
+
+body.portal-guest.nex-future .form-control:focus,
+body.portal-guest.nex-future .form-select:focus {
+  border-color: var(--nx-accent) !important;
+  box-shadow: 0 0 0 3px var(--nx-accent-soft) !important;
+  background: #fff !important;
+  color: var(--nx-ink) !important;
+}
+
+body.portal-guest.nex-future label,
+body.portal-guest.nex-future .form-label {
+  color: var(--nx-ink-soft) !important;
+  font-weight: 600 !important;
+  font-size: 0.9rem !important;
+}
+
+/* ---------- Tables ---------- */
+body.portal-guest.nex-future .table {
+  color: var(--nx-ink-soft);
+  --bs-table-bg: transparent;
+  border-color: var(--nx-border) !important;
+}
+
+body.portal-guest.nex-future .table thead th {
+  font-family: var(--nx-font-display);
+  font-weight: 600;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--nx-muted);
+  border-color: var(--nx-border) !important;
+}
+
+body.portal-guest.nex-future .table-striped > tbody > tr:nth-of-type(odd) > * {
+  background-color: var(--nx-surface-2) !important;
+}
+
+/* ---------- Footer ---------- */
+body.portal-guest.nex-future .footer-area,
+body.portal-guest.nex-future .footer-bg {
+  background: var(--nx-surface) !important;
+  border-top: 1px solid var(--nx-border) !important;
+  margin-top: 3rem;
+}
+
+body.portal-guest.nex-future .footer-widget h3 {
+  font-family: var(--nx-font-display) !important;
+  color: var(--nx-ink) !important;
+  font-weight: 700 !important;
+}
+
+body.portal-guest.nex-future .footer-widget p,
+body.portal-guest.nex-future .footer-list-contact li,
+body.portal-guest.nex-future .footer-list-contact a,
+body.portal-guest.nex-future .footer-list a {
+  color: var(--nx-body) !important;
+}
+
+body.portal-guest.nex-future .footer-list-contact a:hover,
+body.portal-guest.nex-future .footer-list a:hover {
+  color: var(--nx-accent) !important;
+}
+
+/* ---------- Cards / blog / rooms ---------- */
+body.portal-guest.nex-future .blog-card,
+body.portal-guest.nex-future .room-card,
+body.portal-guest.nex-future .single-room {
+  border-radius: var(--nx-radius-lg) !important;
+  overflow: hidden;
+  border: 1px solid var(--nx-border) !important;
+  background: var(--nx-surface) !important;
+  box-shadow: var(--nx-shadow-sm);
+}
+
+body.portal-guest.nex-future .blog-card .blog-content span,
+body.portal-guest.nex-future .blog-card .blog-content p {
+  color: var(--nx-body) !important;
+}
+
+body.portal-guest.nex-future .blog-card .blog-content h3 a {
+  color: var(--nx-ink) !important;
+}
+
+body.portal-guest.nex-future .blog-card:hover,
+body.portal-guest.nex-future .room-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--nx-border-strong) !important;
+  box-shadow: var(--nx-shadow) !important;
+}
+
+/* Section label — solid text, no low-contrast gradient clip */
+body.portal-guest.nex-future .sp-color {
+  background: none !important;
+  -webkit-background-clip: unset !important;
+  background-clip: unset !important;
+  -webkit-text-fill-color: var(--nx-accent) !important;
+  color: var(--nx-accent) !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 0.8rem !important;
+}
+
+/* ---------- Meanmenu (mobile) ---------- */
+body.portal-guest.nex-future .mean-container .mean-nav {
+  background: var(--nx-surface) !important;
+  border: 1px solid var(--nx-border);
+  border-radius: var(--nx-radius-md);
+}
+
+body.portal-guest.nex-future .mean-container a {
+  color: var(--nx-ink) !important;
+  border-color: var(--nx-border) !important;
+}
+
+/* ---------- Bootstrap helpers ---------- */
+body.portal-guest.nex-future .text-dark {
+  color: var(--nx-ink) !important;
+}
+
+body.portal-guest.nex-future .text-secondary,
+body.portal-guest.nex-future .text-muted {
+  color: var(--nx-muted) !important;
+}
+
+body.portal-guest.nex-future .bg-white,
+body.portal-guest.nex-future .bg-light {
+  background-color: #fff !important;
+}
+
+body.portal-guest.nex-future .border,
+body.portal-guest.nex-future .border-top,
+body.portal-guest.nex-future .border-bottom {
+  border-color: var(--nx-border) !important;
+}
+
+body.portal-guest.nex-future .shadow-sm,
+body.portal-guest.nex-future .shadow,
+body.portal-guest.nex-future .shadow-md {
+  box-shadow: var(--nx-shadow-sm) !important;
+}
+
+body.portal-guest.nex-future .btn-primary {
+  background-color: var(--nx-accent) !important;
+  border-color: var(--nx-accent) !important;
+  color: #fff !important;
+}
+
+body.portal-guest.nex-future .btn-primary:hover {
+  background-color: var(--nx-accent-hover) !important;
+  border-color: var(--nx-accent-hover) !important;
+}
+
+body.portal-guest.nex-future .btn-outline-primary {
+  color: var(--nx-accent) !important;
+  border-color: var(--nx-accent) !important;
+}
+
+body.portal-guest.nex-future .btn-outline-primary:hover {
+  background: var(--nx-accent) !important;
+  color: #fff !important;
+}
+
+body.portal-guest.nex-future .btn-outline-secondary {
+  color: var(--nx-ink-soft) !important;
+  border-color: var(--nx-border-strong) !important;
+}
+
+body.portal-guest.nex-future .btn-outline-secondary:hover {
+  background: var(--nx-surface-2) !important;
+  color: var(--nx-ink) !important;
+}
+
+body.portal-guest.nex-future .btn-light {
+  background: #fff !important;
+  color: var(--nx-ink) !important;
+  border: 1px solid var(--nx-border) !important;
+}
+
+/* ---------- Tailwind-heavy pages ---------- */
+body.portal-guest.nex-future .max-w-4xl.mx-auto.bg-white,
+body.portal-guest.nex-future .max-w-6xl.mx-auto.bg-white,
+body.portal-guest.nex-future .bg-white.rounded-xl {
+  background: #fff !important;
+  border: 1px solid var(--nx-border) !important;
+  color: var(--nx-ink-soft) !important;
+}
+
+body.portal-guest.nex-future .text-gray-600,
+body.portal-guest.nex-future .text-gray-500 {
+  color: var(--nx-muted) !important;
+}
+
+body.portal-guest.nex-future .text-gray-800,
+body.portal-guest.nex-future .text-gray-700 {
+  color: var(--nx-ink-soft) !important;
+}
+
+body.portal-guest.nex-future .text-2xl.font-bold,
+body.portal-guest.nex-future .text-3xl.font-bold {
+  font-family: var(--nx-font-display) !important;
+  color: var(--nx-ink) !important;
+}
+
+body.portal-guest.nex-future .bg-blue-600,
+body.portal-guest.nex-future .bg-blue-500 {
+  background: var(--nx-accent) !important;
+  color: #fff !important;
+}
+
+body.portal-guest.nex-future .bg-gray-200,
+body.portal-guest.nex-future .bg-gray-100 {
+  background: var(--nx-surface-2) !important;
+}
+
+/* ---------- Accessibility: skip link, focus ---------- */
+.nx-skip-link {
+  position: absolute;
+  left: 0.75rem;
+  top: 0.75rem;
+  z-index: 9999;
+  padding: 0.6rem 1rem;
+  border-radius: 999px;
+  background: var(--nx-accent);
+  color: #fff !important;
+  font-weight: 700;
+  font-size: 0.875rem;
+  text-decoration: none !important;
+  transform: translateY(-120%);
+  transition: transform 0.2s ease;
+}
+
+.nx-skip-link:focus {
+  transform: translateY(0);
+  outline: none;
+}
+
+body.portal-guest.nex-future .nx-main:focus {
+  outline: none;
+}
+
+body.portal-guest.nex-future :focus-visible {
+  outline: 2px solid var(--nx-accent);
+  outline-offset: 3px;
+}
+
+body.portal-guest.nex-future .navbar-area .dropdown-menu .dropdown-divider {
+  border-color: var(--nx-border) !important;
+  opacity: 1;
+}
+
+body.portal-guest.nex-future .nx-account-links a {
+  color: var(--nx-ink-soft) !important;
+}
+
+body.portal-guest.nex-future .nx-account-links a:hover {
+  background: var(--nx-surface-2);
+  color: var(--nx-ink) !important;
+}
+
+body.portal-guest.nex-future .nx-account-email {
+  color: var(--nx-muted) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.portal-guest.nex-future *,
+  body.portal-guest.nex-future *::before,
+  body.portal-guest.nex-future *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+::selection {
+  background: rgba(13, 148, 136, 0.25);
+  color: var(--nx-ink);
+}
+
+/* ---------- Home hero: calm + readable panel ---------- */
+body.portal-guest.nex-future .nx-hero-home {
+  min-height: 78vh;
+  display: flex;
+  align-items: center;
+  background: linear-gradient(160deg, #ecfdf5 0%, #f0f9ff 45%, #f8fafc 100%);
+  border-bottom: 1px solid var(--nx-border);
+}
+
+body.portal-guest.nex-future .nx-hero-panel {
+  background: var(--nx-surface);
+  border: 1px solid var(--nx-border);
+  border-radius: var(--nx-radius-xl);
+  padding: clamp(1.5rem, 4vw, 2.5rem);
+  box-shadow: var(--nx-shadow);
+}
+
+body.portal-guest.nex-future .nx-hero-home h1,
+body.portal-guest.nex-future .nx-hero-panel h1 {
+  color: var(--nx-ink) !important;
+}
+
+body.portal-guest.nex-future .nx-hero-accent {
+  color: var(--nx-accent) !important;
+  font-weight: 700;
+}
+
+body.portal-guest.nex-future .nx-hero-lead {
+  color: var(--nx-body) !important;
+  max-width: 36rem;
+}
+
+/* Home: pull search card slightly into hero without sliding under sticky header */
+body.portal-guest.nex-future .nx-home-search-overlap {
+  margin-top: clamp(-1.25rem, -3vw, -0.5rem) !important;
+}
+
+/* ---------- Navbar stacking ---------- */
+body.portal-guest.nex-future .navbar-area .main-nav .navbar {
+  position: relative;
+  z-index: 1200;
+}
+
+body.portal-guest.nex-future .navbar-area .nav-btn {
+  position: relative;
+  z-index: 2;
+}
+
+/* Mobile/tablet: no second white bar under logo row (actions live in top bar + hamburger menu) */
+@media (max-width: 991px) {
+  body.portal-guest.nex-future .navbar-area .nav-btn {
+    display: none !important;
+  }
+}
+
+body.portal-guest.nex-future .mean-container .mean-nav {
+  z-index: 1300;
+}
+
+/*
+ * Sticky nav (custom.js): legacy uses position:fixed on .navbar-area and .main-nav,
+ * which removes the bar from document flow — hero / first sections slide under it.
+ * Keep the bar in the scroll flow with position:sticky on the wrapper only.
+ */
+body.portal-guest.nex-future .navbar-area.sticky-nav {
+  position: sticky !important;
+  top: 0;
+  left: 0 !important;
+  width: 100% !important;
+  z-index: 1100 !important;
+  animation: none !important;
+  transition: box-shadow 0.2s ease, background 0.2s ease !important;
+}
+
+body.portal-guest.nex-future .navbar-area.sticky-nav .main-nav {
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+  z-index: auto !important;
+  box-shadow: 0 8px 28px rgba(15, 23, 42, 0.1) !important;
+}
+
+body.portal-guest.nex-future main.nx-main {
+  scroll-margin-top: 1rem;
+}
+
+/* ---------- Location suggestions (on white fields) ---------- */
+.nx-location-suggestions {
+  background: #fff;
+  border: 1px solid var(--nx-border);
+  border-radius: var(--nx-radius-md);
+}
+
+.nx-location-suggestions .list-group-item {
+  cursor: pointer;
+  border: 0;
+  border-bottom: 1px solid var(--nx-border);
+  color: var(--nx-ink-soft);
+}
+
+.nx-location-suggestions .list-group-item:hover,
+.nx-location-suggestions .list-group-item:focus {
+  background: var(--nx-surface-2);
+}
+
+.nx-leaflet-map {
+  background: var(--nx-surface-2);
+}
+
+/* ---------- Owl carousel ---------- */
+body.portal-guest.nex-future .room-details-slider.owl-carousel .owl-stage-outer {
+  border-radius: var(--nx-radius-md);
+  overflow: hidden;
+  border: 1px solid var(--nx-border);
+}
+
+body.portal-guest.nex-future .room-details-slider .owl-nav button.owl-prev,
+body.portal-guest.nex-future .room-details-slider .owl-nav button.owl-next {
+  background: rgba(255, 255, 255, 0.95) !important;
+  border: 1px solid var(--nx-border) !important;
+  color: var(--nx-ink) !important;
+  border-radius: 50%;
+  width: 42px;
+  height: 42px;
+}
+
+body.portal-guest.nex-future .room-details-slider .owl-dots .owl-dot span {
+  background: var(--nx-border-strong);
+}
+
+body.portal-guest.nex-future .room-details-slider .owl-dots .owl-dot.active span {
+  background: var(--nx-accent);
+}
+
+/* ---------- Map explore (sidebar) ---------- */
+@media (min-width: 992px) {
+  .nx-map-split .nx-map-pane {
+    min-height: calc(100vh - 200px);
+  }
+  .nx-map-sidebar {
+    max-height: calc(100vh - 200px) !important;
+  }
+}
+
+/* ---------- Room / property article body (legacy templates) ---------- */
+body.portal-guest.nex-future .room-details-content p,
+body.portal-guest.nex-future .room-details-article p,
+body.portal-guest.nex-future .side-bar-form p {
+  color: var(--nx-body) !important;
+}
+
+body.portal-guest.nex-future .side-bar-form h3 {
+  color: var(--nx-ink) !important;
+}
+
+/* ---------- Section backgrounds that were hard-coded white ---------- */
+body.portal-guest.nex-future .section-bg,
+body.portal-guest.nex-future .features-section,
+body.portal-guest.nex-future .how-it-works-section {
+  background: var(--nx-surface) !important;
+}
+
+body.portal-guest.nex-future .how-it-works-section .text-muted,
+body.portal-guest.nex-future .features-section .text-muted {
+  color: var(--nx-muted) !important;
+}
+
+/* ---------- Marketing sections (home + search headers) ---------- */
+body.portal-guest.nex-future .properties-showcase {
+  background: var(--nx-canvas) !important;
+}
+
+body.portal-guest.nex-future .feature-card,
+body.portal-guest.nex-future .step-card {
+  background: var(--nx-surface) !important;
+  border: 1px solid var(--nx-border) !important;
+  box-shadow: var(--nx-shadow-sm);
+}
+
+body.portal-guest.nex-future .property-card .property-content,
+body.portal-guest.nex-future .property-card .property-content p,
+body.portal-guest.nex-future .property-card .property-content .small {
+  color: var(--nx-body) !important;
+}
+
+body.portal-guest.nex-future .property-card .property-content .fw-bold,
+body.portal-guest.nex-future .property-card .property-content h5 {
+  color: var(--nx-ink) !important;
+}
+
+body.portal-guest.nex-future .become-host-section {
+  background: linear-gradient(135deg, #0f766e 0%, #115e59 100%) !important;
+  border-top: 1px solid var(--nx-border);
+  border-bottom: 1px solid var(--nx-border);
+}
+
+body.portal-guest.nex-future .become-host-section h2,
+body.portal-guest.nex-future .become-host-section .lead,
+body.portal-guest.nex-future .become-host-section p,
+body.portal-guest.nex-future .become-host-section .host-stats {
+  color: #fff !important;
+  opacity: 1 !important;
+}
+
+body.portal-guest.nex-future .become-host-section .btn-light {
+  background: #fff !important;
+  color: var(--nx-ink) !important;
+  border: none !important;
+}
+
+body.portal-guest.nex-future .become-host-section .btn-outline-light {
+  border: 2px solid #fff !important;
+  color: #fff !important;
+  background: transparent !important;
+}
+
+body.portal-guest.nex-future .become-host-section .btn-outline-light:hover {
+  background: #fff !important;
+  color: var(--nx-ink) !important;
+}
+
+body.portal-guest.nex-future .page-header,
+body.portal-guest.nex-future .nx-map-explore {
+  background: var(--nx-surface-2) !important;
+  border-bottom: 1px solid var(--nx-border);
+}
+
+body.portal-guest.nex-future .page-header h1,
+body.portal-guest.nex-future .page-header p,
+body.portal-guest.nex-future .page-header .text-white,
+body.portal-guest.nex-future .nx-map-explore h1,
+body.portal-guest.nex-future .nx-map-explore p,
+body.portal-guest.nex-future .nx-map-explore .text-white {
+  color: var(--nx-ink) !important;
+  opacity: 1 !important;
+}
+
+body.portal-guest.nex-future .testimonials-slider-content p,
+body.portal-guest.nex-future .testimonials-slider-content h3,
+body.portal-guest.nex-future .testimonials-slider-content span {
+  color: var(--nx-ink-soft) !important;
+}
+
+body.portal-guest.nex-future .blog-style-area,
+body.portal-guest.nex-future .blog-details-area,
+body.portal-guest.nex-future .room-details-area,
+body.portal-guest.nex-future .room-area {
+  background: transparent !important;
+}
+
+body.portal-guest.nex-future .room-details-title h2,
+body.portal-guest.nex-future .room-details-title ul li {
+  color: var(--nx-ink) !important;
+}
+
+body.portal-guest.nex-future .blog-content p,
+body.portal-guest.nex-future .blog-article p,
+body.portal-guest.nex-future .blog-article-title h2 {
+  color: var(--nx-body) !important;
+}
+
+body.portal-guest.nex-future .accordion-title {
+  color: var(--nx-ink) !important;
+}
+
+body.portal-guest.nex-future .accordion-content p {
+  color: var(--nx-body) !important;
+}
+
+body.portal-guest.nex-future .faq-content .section-title h2,
+body.portal-guest.nex-future .faq-content .section-title p {
+  color: var(--nx-ink-soft) !important;
+}
+
+body.portal-guest.nex-future .search-form-section .search-card {
+  background: #fff !important;
+  border: 1px solid var(--nx-border) !important;
+  box-shadow: var(--nx-shadow) !important;
+}
+
+body.portal-guest.nex-future .room-details-side,
+body.portal-guest.nex-future .room-details-side p,
+body.portal-guest.nex-future .room-details-side .property-info {
+  color: var(--nx-body) !important;
+}
+
+body.portal-guest.nex-future .room-details-side h3 {
+  color: var(--nx-ink) !important;
+}
+
+/* ---------- Account hub (sidebar + main) ---------- */
+body.portal-guest.nex-future .nx-account-area {
+  background: transparent !important;
+}
+
+body.portal-guest.nex-future .service-article.nx-account-panel {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+body.portal-guest.nex-future .nx-stat-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+}
+
+body.portal-guest.nex-future .nx-stat-card {
+  background: var(--nx-surface) !important;
+  border: 1px solid var(--nx-border) !important;
+  border-radius: var(--nx-radius-lg) !important;
+  padding: 1.25rem 1.35rem !important;
+  box-shadow: var(--nx-shadow-sm) !important;
+}
+
+body.portal-guest.nex-future .nx-stat-card .nx-stat-label {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--nx-muted) !important;
+  font-weight: 600;
+  margin-bottom: 0.35rem;
+}
+
+body.portal-guest.nex-future .nx-stat-card .nx-stat-value {
+  font-family: var(--nx-font-display);
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--nx-ink) !important;
+  line-height: 1.15;
+}
+
+body.portal-guest.nex-future .nx-stat-card.nx-stat-card--accent {
+  border-color: rgba(13, 148, 136, 0.35) !important;
+  box-shadow: 0 8px 28px rgba(13, 148, 136, 0.12) !important;
+}
+
+body.portal-guest.nex-future .nx-tw-hero {
+  background: linear-gradient(120deg, var(--nx-accent) 0%, #0e7490 52%, #155e75 100%);
+  border-radius: var(--nx-radius-xl);
+  color: #fff !important;
+}
+
+body.portal-guest.nex-future .nx-tw-hero h1,
+body.portal-guest.nex-future .nx-tw-hero h2,
+body.portal-guest.nex-future .nx-tw-hero h3 {
+  color: #fff !important;
+}
+
+/* ---------- Elapse wordmark (brand) ---------- */
+.elapse-wordmark {
+  font-family: 'Syne', 'Outfit', var(--nx-font-sans), system-ui, sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.08em;
+  line-height: 1.05;
+  text-rendering: geometricPrecision;
+  background-image: linear-gradient(
+    115deg,
+    #a78bfa 0%,
+    #22d3ee 38%,
+    #67e8f9 58%,
+    #f472b6 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.elapse-wordmark--footer {
+  filter: drop-shadow(0 0 20px rgba(34, 211, 238, 0.45));
+}
+
+.elapse-wordmark--admin {
+  background-image: linear-gradient(120deg, #3730a3 0%, #0e7490 55%, #0f766e 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: none;
+}

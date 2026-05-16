@@ -27,7 +27,7 @@
         <div class="bg-white rounded-xl shadow-md p-6 mb-6">
             <h3 class="font-semibold text-lg mb-4">Booking Details</h3>
             <div class="flex items-start">
-                <img src="{{ asset($booking->room->image ?? 'frontend/img/placeholder.jpg') }}" 
+                <img src="{{ $booking->room->image_url }}" 
                      alt="{{ $booking->room->room_name }}" 
                      class="w-32 h-24 rounded-lg object-cover">
                 <div class="ml-4 flex-1">

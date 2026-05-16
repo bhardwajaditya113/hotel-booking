@@ -3,14 +3,12 @@
 namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\Booking;
 use App\Models\User;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Str;
+use App\Services\Marketplace\BookingMarketplacePaymentCompleter;
+use App\Services\Marketplace\BookingMarketplaceSplitCalculator;
+use Illuminate\Http\Request;
 use Razorpay\Api\Api;
-use App\Mail\BookConfirm;
 
 class RazorpayController extends Controller
 {
@@ -20,23 +18,37 @@ class RazorpayController extends Controller
     public function paymentPage($booking_id)
     {
         $booking = Booking::with(['room', 'property'])->findOrFail($booking_id);
-        
+
         // Check if booking belongs to current user
         if ($booking->user_id != auth()->id()) {
             abort(403, 'Unauthorized');
         }
-        
+
         // Check if already paid
         if ($booking->payment_status == 1) {
             return redirect()->route('user.booking')->with([
                 'message' => 'This booking is already paid',
-                'alert-type' => 'info'
+                'alert-type' => 'info',
             ]);
         }
-        
+
+        if ($booking->awaitsHostApproval()) {
+            return redirect()->route('booking.confirmation', ['booking_id' => $booking->id])->with([
+                'message' => __('frontend.payment.wait_host_approve'),
+                'alert-type' => 'warning',
+            ]);
+        }
+
+        if ($booking->host_approval_status === 'declined') {
+            return redirect()->route('booking.confirmation', ['booking_id' => $booking->id])->with([
+                'message' => __('frontend.payment.booking_declined'),
+                'alert-type' => 'error',
+            ]);
+        }
+
         return view('frontend.payment.razorpay', compact('booking'));
     }
-    
+
     /**
      * Process Razorpay payment
      */
@@ -48,137 +60,165 @@ class RazorpayController extends Controller
             'razorpay_signature' => 'required',
             'booking_id' => 'required',
         ]);
-        
+
         $booking = Booking::findOrFail($request->booking_id);
-        
+
+        if ($booking->user_id != auth()->id()) {
+            abort(403, 'Unauthorized');
+        }
+
+        if ($booking->awaitsHostApproval()) {
+            return redirect()->route('booking.confirmation', ['booking_id' => $booking->id])->with([
+                'message' => __('frontend.payment.wait_host_approve'),
+                'alert-type' => 'warning',
+            ]);
+        }
+
+        if ($booking->host_approval_status === 'declined') {
+            return redirect()->route('booking.confirmation', ['booking_id' => $booking->id])->with([
+                'message' => __('frontend.payment.booking_declined'),
+                'alert-type' => 'error',
+            ]);
+        }
+
         // Check if this is a test payment (for development)
         $isTestPayment = $request->has('test_payment') && $request->test_payment == 'true';
-        
+
         if ($isTestPayment) {
             // Skip signature verification for test payments
             // This allows testing without actual Razorpay integration
         } else {
             // Verify signature
-            $api = new Api(env('RAZORPAY_KEY'), env('RAZORPAY_SECRET'));
-            
+            $api = new Api(config('services.razorpay.key'), config('services.razorpay.secret'));
+
             try {
                 $attributes = [
                     'razorpay_order_id' => $request->razorpay_order_id,
                     'razorpay_payment_id' => $request->razorpay_payment_id,
-                    'razorpay_signature' => $request->razorpay_signature
+                    'razorpay_signature' => $request->razorpay_signature,
                 ];
-                
+
                 $api->utility->verifyPaymentSignature($attributes);
             } catch (\Exception $e) {
                 return redirect('/')->with([
-                    'message' => 'Payment verification failed: ' . $e->getMessage(),
-                    'alert-type' => 'error'
+                    'message' => 'Payment verification failed: '.$e->getMessage(),
+                    'alert-type' => 'error',
                 ]);
             }
         }
-        
+
         try {
-            
-            // Payment verified, update booking
-            $booking->payment_status = 1;
-            $booking->transation_id = $request->razorpay_payment_id;
-            $booking->status = 1; // Confirmed
-            $booking->save();
-            
-            // Send email confirmation to user
-            try {
-                $mailData = [
-                    'check_in' => $booking->check_in,
-                    'check_out' => $booking->check_out,
-                    'name' => $booking->name,
-                    'email' => $booking->email,
-                    'phone' => $booking->phone,
-                    'booking_code' => $booking->code,
-                    'total_price' => $booking->total_price,
-                    'room' => $booking->room,
-                    'property' => $booking->property,
-                ];
-                Mail::to($booking->email)->send(new BookConfirm($mailData));
-            } catch (\Exception $e) {
-                // Log error but don't fail the payment
-                \Log::error('Failed to send booking confirmation email: ' . $e->getMessage());
-            }
-            
-            // Send notification to admin users
-            $adminUsers = User::where('role', 'admin')->get();
-            foreach ($adminUsers as $admin) {
-                DB::table('notifications')->insert([
-                    'id' => Str::uuid()->toString(),
-                    'type' => 'App\\Notifications\\BookingComplete',
-                    'notifiable_type' => 'App\\Models\\User',
-                    'notifiable_id' => $admin->id,
-                    'user_id' => $admin->id,
-                    'data' => json_encode(['message' => 'New Booking Added by ' . $booking->name]),
-                    'read_at' => null,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]);
-            }
-            
-            // Redirect to booking confirmation page
+            BookingMarketplacePaymentCompleter::complete(
+                $booking,
+                $request->razorpay_payment_id,
+                $request->razorpay_order_id,
+                [
+                    'source' => 'razorpay_checkout_redirect',
+                    'razorpay_order_id' => $request->razorpay_order_id,
+                    'razorpay_payment_id' => $request->razorpay_payment_id,
+                ]
+            );
+
             return redirect()->route('booking.confirmation', ['booking_id' => $booking->id])->with([
                 'message' => 'Payment Successful! Your booking is confirmed.',
-                'alert-type' => 'success'
+                'alert-type' => 'success',
             ]);
-            
+
         } catch (\Exception $e) {
-            \Log::error('Payment processing error: ' . $e->getMessage());
+            \Log::error('Payment processing error: '.$e->getMessage());
+
             return redirect('/')->with([
-                'message' => 'Payment processing failed: ' . $e->getMessage(),
-                'alert-type' => 'error'
+                'message' => 'Payment processing failed: '.$e->getMessage(),
+                'alert-type' => 'error',
             ]);
         }
     }
-    
+
     /**
-     * Create Razorpay order
+     * Create Razorpay order (optional Route transfers for marketplace payout split).
      */
     public function createOrder(Request $request)
     {
-        $booking = Booking::findOrFail($request->booking_id);
-        
-        $api = new Api(env('RAZORPAY_KEY'), env('RAZORPAY_SECRET'));
-        
-        // Amount in paise (1 INR = 100 paise)
-        // If price is already in INR, use directly; otherwise convert
-        $amount_in_inr = $booking->total_price;
-        // If price seems to be in USD (less than 100), convert to INR
-        if ($amount_in_inr < 100) {
-            $amount_in_inr = $amount_in_inr * 83; // Approximate conversion
+        $request->validate([
+            'booking_id' => 'required|exists:bookings,id',
+        ]);
+
+        $booking = Booking::with(['property.host.hostProfile'])->findOrFail($request->booking_id);
+
+        if ($booking->user_id != auth()->id()) {
+            abort(403, 'Unauthorized');
         }
-        $amount_in_paise = round($amount_in_inr * 100);
-        
-        try {
-            $order = $api->order->create([
-                'receipt' => 'booking_' . $booking->id,
-                'amount' => round($amount_in_paise),
+
+        if ($booking->awaitsHostApproval()) {
+            return response()->json([
+                'success' => false,
+                'message' => __('frontend.payment.wait_host_approve'),
+            ], 422);
+        }
+
+        if ($booking->host_approval_status === 'declined') {
+            return response()->json([
+                'success' => false,
+                'message' => __('frontend.payment.booking_declined'),
+            ], 422);
+        }
+
+        $guestChargeInr = BookingMarketplaceSplitCalculator::guestTotalInrFromBooking($booking);
+        $split = BookingMarketplaceSplitCalculator::persistBookingSnapshot($booking, $guestChargeInr);
+
+        $linkedAccountId = optional($booking->property?->host?->hostProfile)->razorpay_linked_account_id;
+
+        $orderPayload = [
+            'receipt' => 'booking_'.$booking->id,
+            'amount' => $split['total_paise'],
+            'currency' => 'INR',
+            'notes' => [
+                'booking_id' => (string) $booking->id,
+                'booking_code' => (string) ($booking->code ?? ''),
+            ],
+        ];
+
+        if (
+            config('marketplace.route_enabled')
+            && $linkedAccountId
+            && ($split['host_transfer_paise'] ?? 0) > 0
+        ) {
+            $transfer = [
+                'account' => $linkedAccountId,
+                'amount' => $split['host_transfer_paise'],
                 'currency' => 'INR',
-                'notes' => [
-                    'booking_id' => $booking->id,
-                    'booking_code' => $booking->code,
-                ]
-            ]);
-            
+            ];
+            if (config('marketplace.transfer_on_hold')) {
+                $transfer['on_hold'] = 1;
+            }
+            $orderPayload['transfers'] = [$transfer];
+            $booking->marketplace_route_transfer_used = true;
+            $booking->save();
+        }
+
+        $api = new Api(config('services.razorpay.key'), config('services.razorpay.secret'));
+
+        try {
+            $order = $api->order->create($orderPayload);
+
+            $booking->razorpay_order_id = $order['id'];
+            $booking->save();
+
             return response()->json([
                 'success' => true,
-                'order_id' => $order->id,
-                'amount' => round($amount_in_paise),
+                'order_id' => $order['id'],
+                'amount' => $split['total_paise'],
                 'currency' => 'INR',
             ]);
-            
+
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ], 500);
         }
     }
-    
+
     /**
      * Handle payment failure
      */
@@ -186,10 +226,10 @@ class RazorpayController extends Controller
     {
         return redirect('/')->with([
             'message' => 'Payment was cancelled or failed. Please try again.',
-            'alert-type' => 'error'
+            'alert-type' => 'error',
         ]);
     }
-    
+
     /**
      * Test payment bypass (for development only)
      * This allows completing payment without actual Razorpay integration
@@ -199,69 +239,61 @@ class RazorpayController extends Controller
         if (app()->environment('production')) {
             abort(403, 'Test payment not allowed in production');
         }
-        
+
         $request->validate([
             'booking_id' => 'required|exists:bookings,id',
         ]);
-        
+
         $booking = Booking::findOrFail($request->booking_id);
-        
+
         // Check if booking belongs to current user
         if ($booking->user_id != auth()->id()) {
             abort(403, 'Unauthorized');
         }
-        
+
         // Check if already paid
         if ($booking->payment_status == 1) {
             return redirect()->route('booking.confirmation', ['booking_id' => $booking->id])->with([
                 'message' => 'This booking is already paid.',
-                'alert-type' => 'info'
+                'alert-type' => 'info',
             ]);
         }
-        
-        // Mark as paid
-        $booking->payment_status = 1;
-        $booking->status = 1;
-        $booking->transation_id = 'test_txn_' . time();
-        $booking->save();
-        
-        // Send email confirmation
+
+        if ($booking->awaitsHostApproval()) {
+            return redirect()->route('booking.confirmation', ['booking_id' => $booking->id])->with([
+                'message' => __('frontend.payment.wait_host_approve'),
+                'alert-type' => 'warning',
+            ]);
+        }
+
+        if ($booking->host_approval_status === 'declined') {
+            return redirect()->route('booking.confirmation', ['booking_id' => $booking->id])->with([
+                'message' => __('frontend.payment.booking_declined'),
+                'alert-type' => 'error',
+            ]);
+        }
+
+        $guestChargeInr = BookingMarketplaceSplitCalculator::guestTotalInrFromBooking($booking);
+        BookingMarketplaceSplitCalculator::persistBookingSnapshot($booking, $guestChargeInr);
+
+        $paymentId = 'test_txn_'.time();
+
         try {
-            $mailData = [
-                'check_in' => $booking->check_in,
-                'check_out' => $booking->check_out,
-                'name' => $booking->name,
-                'email' => $booking->email,
-                'phone' => $booking->phone,
-                'booking_code' => $booking->code,
-                'total_price' => $booking->total_price,
-                'room' => $booking->room,
-                'property' => $booking->property,
-            ];
-            Mail::to($booking->email)->send(new BookConfirm($mailData));
-        } catch (\Exception $e) {
-            \Log::error('Failed to send booking confirmation email: ' . $e->getMessage());
-        }
-        
-        // Send notification to admin users
-        $adminUsers = User::where('role', 'admin')->get();
-        foreach ($adminUsers as $admin) {
-            DB::table('notifications')->insert([
-                'id' => Str::uuid()->toString(),
-                'type' => 'App\\Notifications\\BookingComplete',
-                'notifiable_type' => 'App\\Models\\User',
-                'notifiable_id' => $admin->id,
-                'user_id' => $admin->id,
-                'data' => json_encode(['message' => 'New Booking Added by ' . $booking->name]),
-                'read_at' => null,
-                'created_at' => now(),
-                'updated_at' => now(),
+            BookingMarketplacePaymentCompleter::complete($booking, $paymentId, $booking->razorpay_order_id, [
+                'source' => 'razorpay_test_payment',
+            ]);
+
+            return redirect()->route('booking.confirmation', ['booking_id' => $booking->id])->with([
+                'message' => 'Test Payment Successful! Your booking is confirmed.',
+                'alert-type' => 'success',
+            ]);
+        } catch (\Throwable $e) {
+            \Log::error('Test payment completion failed: '.$e->getMessage());
+
+            return redirect('/')->with([
+                'message' => 'Test payment failed: '.$e->getMessage(),
+                'alert-type' => 'error',
             ]);
         }
-        
-        return redirect()->route('booking.confirmation', ['booking_id' => $booking->id])->with([
-            'message' => 'Test Payment Successful! Your booking is confirmed.',
-            'alert-type' => 'success'
-        ]);
     }
 }

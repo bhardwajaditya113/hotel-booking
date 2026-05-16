@@ -7,12 +7,12 @@
         <div class="inner-title">
             <ul>
                 <li>
-                    <a href="{{ url('/') }}">Home</a>
+                    <a href="{{ url('/') }}">{{ __('site.nav.home') }}</a>
                 </li>
                 <li><i class='bx bx-chevron-right'></i></li>
-                <li>About Us</li>
+                <li>{{ __('frontend.about.breadcrumb') }}</li>
             </ul>
-            <h3>About Us</h3>
+            <h3>{{ __('frontend.about.page_title') }}</h3>
         </div>
     </div>
 </div>
@@ -25,26 +25,18 @@
             <div class="col-lg-6">
                 <div class="about-content">
                     <div class="section-title">
-                        <span class="sp-color">About Our Platform</span>
-                        <h2>Welcome to the Future of Travel</h2>
-                        <p>
-                            We're revolutionizing the way people find and book accommodations. Our hybrid platform combines 
-                            the best of hotel aggregation (OYO style) and unique stays (Airbnb style), offering travelers 
-                            an unparalleled choice of verified properties. Whether you're looking for a luxury hotel or a 
-                            cozy apartment, we've got you covered.
-                        </p>
-                        <p>
-                            For hosts, we provide powerful tools to manage properties, reach more guests, and grow your 
-                            business. Join thousands of successful hosts and hotels already on our platform.
-                        </p>
+                        <span class="sp-color">{{ __('frontend.about.platform_eyebrow') }}</span>
+                        <h2>{{ __('frontend.about.welcome_heading') }}</h2>
+                        <p>{{ __('frontend.about.welcome_p1') }}</p>
+                        <p>{{ __('frontend.about.welcome_p2') }}</p>
                     </div>
                     <div class="about-content-card d-flex">
                         <div class="content-card-icon">
                             <i class='flaticon-quality'></i>
                         </div>
                         <div class="about-card-content">
-                            <h3>Premium Quality</h3>
-                            <p>We maintain the highest standards of quality in all our services and amenities.</p>
+                            <h3>{{ __('frontend.about.premium_title') }}</h3>
+                            <p>{{ __('frontend.about.premium_text') }}</p>
                         </div>
                     </div>
                     <div class="about-content-card d-flex">
@@ -52,8 +44,8 @@
                             <i class='flaticon-customer-service'></i>
                         </div>
                         <div class="about-card-content">
-                            <h3>24/7 Support</h3>
-                            <p>Our dedicated team is available around the clock to assist you with any needs.</p>
+                            <h3>{{ __('frontend.about.support_title') }}</h3>
+                            <p>{{ __('frontend.about.support_text') }}</p>
                         </div>
                     </div>
                 </div>
@@ -61,7 +53,7 @@
 
             <div class="col-lg-6">
                 <div class="about-img">
-                    <img src="{{ asset('frontend/assets/img/about/about-img1.jpg') }}" alt="About">
+                    <img src="{{ asset('frontend/assets/img/about/about-img1.jpg') }}" alt="{{ __('frontend.about.img_alt_about') }}">
                 </div>
             </div>
         </div>
@@ -73,21 +65,21 @@
 <div class="team-area pb-70">
     <div class="container">
         <div class="section-title text-center">
-            <span class="sp-color">Our Team</span>
-            <h2>Meet Our Dedicated Team</h2>
+            <span class="sp-color">{{ __('frontend.about.team_eyebrow') }}</span>
+            <h2>{{ __('frontend.about.team_heading') }}</h2>
         </div>
-        
+
         @php
             $teams = App\Models\Team::latest()->limit(4)->get();
         @endphp
-        
+
         @if($teams->count() > 0)
         <div class="row pt-45">
             @foreach($teams as $team)
             <div class="col-lg-3 col-md-6">
                 <div class="team-card">
                     <a href="#">
-                        <img src="{{ asset($team->image) }}" alt="{{ $team->name }}">
+                        <img src="{{ \App\Support\MediaUrl::resolve($team->image, 'upload/team') }}" alt="{{ $team->name }}">
                     </a>
                     <div class="content">
                         <a href="#">
@@ -110,7 +102,7 @@
         </div>
         @else
         <div class="text-center py-5">
-            <p>Our team information will be updated soon.</p>
+            <p>{{ __('frontend.about.team_empty') }}</p>
         </div>
         @endif
     </div>
@@ -124,48 +116,45 @@
             <div class="col-lg-6">
                 <div class="choose-content">
                     <div class="section-title">
-                        <span class="sp-color">Why Choose Us</span>
-                        <h2>We Provide Best Experience</h2>
-                        <p>
-                            Our commitment to excellence ensures that every guest enjoys a memorable stay. 
-                            From luxurious accommodations to exceptional dining experiences.
-                        </p>
+                        <span class="sp-color">{{ __('frontend.about.choose_eyebrow') }}</span>
+                        <h2>{{ __('frontend.about.choose_heading') }}</h2>
+                        <p>{{ __('frontend.about.choose_lead') }}</p>
                     </div>
                     <div class="row">
                         <div class="col-lg-6 col-6">
                             <div class="choose-content-card">
                                 <div class="content">
                                     <i class="flaticon-bed"></i>
-                                    <h3>Luxury Rooms</h3>
+                                    <h3>{{ __('frontend.about.luxury_rooms_title') }}</h3>
                                 </div>
-                                <p>Comfortable and elegantly designed rooms.</p>
+                                <p>{{ __('frontend.about.luxury_rooms_text') }}</p>
                             </div>
                         </div>
                         <div class="col-lg-6 col-6">
                             <div class="choose-content-card">
                                 <div class="content">
                                     <i class="flaticon-restaurant"></i>
-                                    <h3>Fine Dining</h3>
+                                    <h3>{{ __('frontend.about.fine_dining_title') }}</h3>
                                 </div>
-                                <p>Exquisite cuisine from world-class chefs.</p>
+                                <p>{{ __('frontend.about.fine_dining_text') }}</p>
                             </div>
                         </div>
                         <div class="col-lg-6 col-6">
                             <div class="choose-content-card">
                                 <div class="content">
                                     <i class="flaticon-spa"></i>
-                                    <h3>Spa & Wellness</h3>
+                                    <h3>{{ __('frontend.about.spa_title') }}</h3>
                                 </div>
-                                <p>Relax and rejuvenate at our spa.</p>
+                                <p>{{ __('frontend.about.spa_text') }}</p>
                             </div>
                         </div>
                         <div class="col-lg-6 col-6">
                             <div class="choose-content-card">
                                 <div class="content">
                                     <i class="flaticon-wifi"></i>
-                                    <h3>Free WiFi</h3>
+                                    <h3>{{ __('frontend.about.wifi_title') }}</h3>
                                 </div>
-                                <p>Stay connected with high-speed internet.</p>
+                                <p>{{ __('frontend.about.wifi_text') }}</p>
                             </div>
                         </div>
                     </div>
@@ -173,7 +162,7 @@
             </div>
             <div class="col-lg-6">
                 <div class="choose-img">
-                    <img src="{{ asset('frontend/assets/img/about/about-img2.jpg') }}" alt="Images">
+                    <img src="{{ asset('frontend/assets/img/about/about-img2.jpg') }}" alt="{{ __('frontend.about.choose_img_alt') }}">
                 </div>
             </div>
         </div>

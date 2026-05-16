@@ -116,22 +116,8 @@
         <label class="block text-sm font-medium text-gray-700 mb-3">Select Payment Method</label>
         
         <div class="space-y-3">
-            {{-- Stripe --}}
-            <label class="flex items-center p-4 border rounded-lg cursor-pointer hover:border-blue-500 transition payment-method-option">
-                <input type="radio" name="payment_method" value="stripe" checked class="w-5 h-5 text-blue-600">
-                <span class="ml-3 flex items-center flex-1">
-                    <img src="{{ asset('frontend/img/stripe.svg') }}" alt="Stripe" class="h-8 mr-3" onerror="this.src='https://img.icons8.com/color/48/stripe.png'">
-                    <span>
-                        <span class="font-medium">Credit / Debit Card</span>
-                        <span class="block text-sm text-gray-500">Visa, Mastercard, Amex</span>
-                    </span>
-                </span>
-                <i class="fa-solid fa-lock text-green-500"></i>
-            </label>
-
-            {{-- Razorpay --}}
-            <label class="flex items-center p-4 border rounded-lg cursor-pointer hover:border-blue-500 transition payment-method-option">
-                <input type="radio" name="payment_method" value="razorpay" class="w-5 h-5 text-blue-600">
+            <label class="flex items-center p-4 border rounded-lg cursor-pointer hover:border-blue-500 transition payment-method-option border-blue-500 bg-blue-50">
+                <input type="radio" name="payment_method" value="razorpay" checked class="w-5 h-5 text-blue-600">
                 <span class="ml-3 flex items-center flex-1">
                     <img src="{{ asset('frontend/img/razorpay.svg') }}" alt="Razorpay" class="h-8 mr-3" onerror="this.src='https://img.icons8.com/color/48/razorpay.png'">
                     <span>

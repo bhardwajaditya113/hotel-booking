@@ -8,10 +8,10 @@
         <div class="inner-title">
             <ul>
                 <li>
-                    <a href="index.html">Home</a>
+                    <a href="{{ url('/') }}">{{ __('site.nav.home') }}</a>
                 </li>
                 <li><i class='bx bx-chevron-right'></i></li>
-                <li>Room Details </li>
+                <li>{{ __('frontend.room.details_breadcrumb') }}</li>
             </ul>
             <h3>{{ $roomdetails->type->name }}</h3>
         </div>
@@ -26,7 +26,7 @@
             <div class="col-lg-4">
                 <div class="room-details-side">
                     <div class="side-bar-form">
-                        <h3>Booking Sheet </h3>
+                        <h3>{{ __('frontend.room.booking_sheet') }}</h3>
 
 <form action="{{ route('user_booking_store',$roomdetails->id) }}" method="post" id="bk_form">
     @csrf
@@ -165,7 +165,7 @@
 
 
 <div class="side-bar-plan">
-                        <h3>Basic Plan Facilities</h3>
+                        <h3>{{ __('frontend.room.basic_facilities') }}</h3>
                         <ul>
                             @foreach ($facility as $fac) 
                             <li><a href="#">{{ $fac->facility_name }}</a></li>
@@ -235,7 +235,7 @@
                     <div class="room-details-review">
                         <h2>Clients Review and Retting's</h2>
                         <div class="review-ratting">
-                            <h3>Your retting: </h3>
+                            <h3>{{ __('frontend.room.your_rating') }}</h3>
                             <i class='bx bx-star'></i>
                             <i class='bx bx-star'></i>
                             <i class='bx bx-star'></i>
@@ -281,7 +281,7 @@
                         <div class="col-lg-5 col-md-4 p-0">
                             <div class="room-card-img">
                                 <a href="{{ url('room/details/'.$item->id) }}">
-                                    <img src="{{ asset( 'upload/roomimg/'.$item->image ) }}" alt="Images">
+                                    <img src="{{ $item->image_url }}" alt="">
                                 </a>
                             </div>
                         </div>

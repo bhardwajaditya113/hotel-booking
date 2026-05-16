@@ -4,35 +4,35 @@
 <div class="container mx-auto px-4 py-8">
     <!-- Search Header -->
     <div class="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-8 text-white mb-8">
-        <h1 class="text-3xl font-bold mb-2">Find Your Perfect Room</h1>
-        <p class="text-blue-100 mb-6">Search from our curated collection of rooms</p>
+        <h1 class="text-3xl font-bold mb-2">{{ __('frontend.search.index_heading') }}</h1>
+        <p class="text-blue-100 mb-6">{{ __('frontend.search.index_subheading') }}</p>
         
         <!-- Quick Search Form -->
         <form action="{{ route('search.results') }}" method="GET" class="bg-white rounded-xl p-4 md:p-6">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Check In</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('site.home.check_in') }}</label>
                     <input type="date" name="check_in" value="{{ request('check_in', date('Y-m-d')) }}" 
                            min="{{ date('Y-m-d') }}"
                            class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-800">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Check Out</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('site.home.check_out') }}</label>
                     <input type="date" name="check_out" value="{{ request('check_out', date('Y-m-d', strtotime('+1 day'))) }}"
                            min="{{ date('Y-m-d', strtotime('+1 day')) }}"
                            class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-800">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Guests</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('site.home.guests') }}</label>
                     <select name="guests" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-800">
                         @for($i = 1; $i <= 10; $i++)
-                        <option value="{{ $i }}" {{ request('guests') == $i ? 'selected' : '' }}>{{ $i }} {{ $i == 1 ? 'Guest' : 'Guests' }}</option>
+                        <option value="{{ $i }}" {{ request('guests') == $i ? 'selected' : '' }}>{{ $i }} {{ $i == 1 ? __('site.home.guest_one') : __('site.home.guest_many') }}</option>
                         @endfor
                     </select>
                 </div>
                 <div class="flex items-end">
                     <button type="submit" class="w-full px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold">
-                        <i class="fa-solid fa-search mr-2"></i> Search
+                        <i class="fa-solid fa-search mr-2"></i> {{ __('frontend.search.search_button') }}
                     </button>
                 </div>
             </div>
@@ -44,8 +44,8 @@
         <div class="lg:w-1/4">
             <div class="bg-white rounded-xl shadow-md p-6 sticky top-4">
                 <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-lg font-semibold">Filters</h3>
-                    <a href="{{ route('search.index') }}" class="text-sm text-blue-600 hover:underline">Clear All</a>
+                    <h3 class="text-lg font-semibold">{{ __('frontend.search.filters') }}</h3>
+                    <a href="{{ route('search.index') }}" class="text-sm text-blue-600 hover:underline">{{ __('frontend.search.clear_all') }}</a>
                 </div>
 
                 <form id="filterForm" action="{{ route('search.results') }}" method="GET">
@@ -56,7 +56,7 @@
 
                     <!-- Property Type (Hotel, Home, Apartment, etc.) -->
                     <div class="mb-6">
-                        <h4 class="font-medium mb-3">Property Type</h4>
+                        <h4 class="font-medium mb-3">{{ __('frontend.search.property_type') }}</h4>
                         <div class="space-y-2">
                             @foreach(\App\Models\PropertyType::all() as $ptype)
                             <label class="flex items-center">
@@ -69,40 +69,45 @@
                         </div>
                     </div>
 
-                    <!-- Property City -->
+                    <!-- Property City + map-backed search -->
                     <div class="mb-6">
-                        <h4 class="font-medium mb-3">City</h4>
-                        <input type="text" name="property_city" value="{{ request('property_city') }}" placeholder="e.g. Mumbai, Delhi" class="w-full px-3 py-2 border rounded text-sm">
+                        <h4 class="font-medium mb-3">{{ __('frontend.search.location') }}</h4>
+                        <x-location-picker
+                            label=""
+                            :placeholder="__('site.home.where_placeholder')"
+                            city-name="property_city"
+                            input-class="w-full px-3 py-2 border rounded text-sm text-gray-800"
+                        />
                     </div>
 
                     <!-- Property Name -->
                     <div class="mb-6">
-                        <h4 class="font-medium mb-3">Property Name</h4>
-                        <input type="text" name="property_name" value="{{ request('property_name') }}" placeholder="e.g. Taj, Cozy Home" class="w-full px-3 py-2 border rounded text-sm">
+                        <h4 class="font-medium mb-3">{{ __('frontend.search.property_name') }}</h4>
+                        <input type="text" name="property_name" value="{{ request('property_name') }}" placeholder="{{ __('frontend.search.property_name_placeholder') }}" class="w-full px-3 py-2 border rounded text-sm">
                     </div>
 
                     <!-- Price Range -->
                     <div class="mb-6">
-                        <h4 class="font-medium mb-3">Price Range</h4>
+                        <h4 class="font-medium mb-3">{{ __('frontend.search.price_range') }}</h4>
                         <div class="flex items-center gap-2">
-                            <input type="number" name="min_price" placeholder="Min" 
+                            <input type="number" name="min_price" placeholder="{{ __('frontend.search.min') }}" 
                                    value="{{ request('min_price') }}"
                                    class="w-full px-3 py-2 border rounded text-sm">
                             <span>-</span>
-                            <input type="number" name="max_price" placeholder="Max"
+                            <input type="number" name="max_price" placeholder="{{ __('frontend.search.max') }}"
                                    value="{{ request('max_price') }}"
                                    class="w-full px-3 py-2 border rounded text-sm">
                         </div>
                         <div class="mt-2 flex flex-wrap gap-2">
-                            <button type="button" onclick="setPriceRange(0, 2000)" class="text-xs px-2 py-1 border rounded hover:bg-gray-100">Under ₹2000</button>
-                            <button type="button" onclick="setPriceRange(2000, 5000)" class="text-xs px-2 py-1 border rounded hover:bg-gray-100">₹2000-5000</button>
-                            <button type="button" onclick="setPriceRange(5000, 10000)" class="text-xs px-2 py-1 border rounded hover:bg-gray-100">₹5000-10000</button>
+                            <button type="button" onclick="setPriceRange(0, 2000)" class="text-xs px-2 py-1 border rounded hover:bg-gray-100">{{ __('frontend.search.price_under_2000') }}</button>
+                            <button type="button" onclick="setPriceRange(2000, 5000)" class="text-xs px-2 py-1 border rounded hover:bg-gray-100">{{ __('frontend.search.price_2000_5000') }}</button>
+                            <button type="button" onclick="setPriceRange(5000, 10000)" class="text-xs px-2 py-1 border rounded hover:bg-gray-100">{{ __('frontend.search.price_5000_10000') }}</button>
                         </div>
                     </div>
 
                     <!-- Room Type -->
                     <div class="mb-6">
-                        <h4 class="font-medium mb-3">Room Type</h4>
+                        <h4 class="font-medium mb-3">{{ __('frontend.search.room_type') }}</h4>
                         <div class="space-y-2">
                             @foreach($roomTypes as $type)
                             <label class="flex items-center">
@@ -117,7 +122,7 @@
 
                     <!-- Rating -->
                     <div class="mb-6">
-                        <h4 class="font-medium mb-3">Guest Rating</h4>
+                        <h4 class="font-medium mb-3">{{ __('frontend.search.guest_rating') }}</h4>
                         <div class="space-y-2">
                             @foreach([5, 4, 3] as $rating)
                             <label class="flex items-center">
@@ -128,7 +133,7 @@
                                     @for($i = 0; $i < $rating; $i++)
                                     <i class="fa-solid fa-star text-yellow-400 text-xs"></i>
                                     @endfor
-                                    <span class="ml-1">{{ $rating }}+ stars</span>
+                                    <span class="ml-1">{{ $rating }}+ {{ __('frontend.search.stars_suffix') }}</span>
                                 </span>
                             </label>
                             @endforeach
@@ -137,7 +142,7 @@
 
                     <!-- Amenities -->
                     <div class="mb-6">
-                        <h4 class="font-medium mb-3">Popular Amenities</h4>
+                        <h4 class="font-medium mb-3">{{ __('frontend.search.popular_amenities') }}</h4>
                         <div class="space-y-2 max-h-48 overflow-y-auto">
                             @foreach($amenityCategories->take(2) as $category)
                                 @foreach($category->activeAmenities->take(5) as $amenity)
@@ -157,7 +162,7 @@
 
                     <!-- Tags -->
                     <div class="mb-6">
-                        <h4 class="font-medium mb-3">Property Type</h4>
+                        <h4 class="font-medium mb-3">{{ __('frontend.search.property_type') }}</h4>
                         <div class="flex flex-wrap gap-2">
                             @foreach($tags->take(8) as $tag)
                             <label class="cursor-pointer">
@@ -173,31 +178,31 @@
 
                     <!-- Special Features -->
                     <div class="mb-6">
-                        <h4 class="font-medium mb-3">Special Features</h4>
+                        <h4 class="font-medium mb-3">{{ __('frontend.search.special_features') }}</h4>
                         <div class="space-y-2">
                             <label class="flex items-center">
                                 <input type="checkbox" name="instant_book" value="1"
                                        {{ request('instant_book') ? 'checked' : '' }}
                                        class="rounded text-blue-600">
-                                <span class="ml-2 text-sm"><i class="fa-solid fa-bolt text-yellow-500 mr-1"></i> Instant Book</span>
+                                <span class="ml-2 text-sm"><i class="fa-solid fa-bolt text-yellow-500 mr-1"></i> {{ __('frontend.search.instant_book') }}</span>
                             </label>
                             <label class="flex items-center">
                                 <input type="checkbox" name="free_cancellation" value="1"
                                        {{ request('free_cancellation') ? 'checked' : '' }}
                                        class="rounded text-blue-600">
-                                <span class="ml-2 text-sm"><i class="fa-solid fa-check-circle text-green-500 mr-1"></i> Free Cancellation</span>
+                                <span class="ml-2 text-sm"><i class="fa-solid fa-check-circle text-green-500 mr-1"></i> {{ __('frontend.search.free_cancellation') }}</span>
                             </label>
                             <label class="flex items-center">
                                 <input type="checkbox" name="breakfast_included" value="1"
                                        {{ request('breakfast_included') ? 'checked' : '' }}
                                        class="rounded text-blue-600">
-                                <span class="ml-2 text-sm"><i class="fa-solid fa-mug-hot text-orange-500 mr-1"></i> Breakfast Included</span>
+                                <span class="ml-2 text-sm"><i class="fa-solid fa-mug-hot text-orange-500 mr-1"></i> {{ __('frontend.search.breakfast_included') }}</span>
                             </label>
                         </div>
                     </div>
 
                     <button type="submit" class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                        Apply Filters
+                        {{ __('frontend.search.apply_filters') }}
                     </button>
                 </form>
             </div>
@@ -208,15 +213,15 @@
             <!-- Sort & View Options -->
             <div class="flex flex-wrap justify-between items-center mb-6">
                 <p class="text-gray-600">
-                    Showing rooms matching your criteria
+                    {{ __('frontend.search.showing_rooms') }}
                 </p>
                 <div class="flex gap-4 mt-2 sm:mt-0">
                     <select name="sort" onchange="updateSort(this.value)" class="px-4 py-2 border rounded-lg">
-                        <option value="recommended" {{ request('sort') == 'recommended' ? 'selected' : '' }}>Recommended</option>
-                        <option value="price_low" {{ request('sort') == 'price_low' ? 'selected' : '' }}>Price: Low to High</option>
-                        <option value="price_high" {{ request('sort') == 'price_high' ? 'selected' : '' }}>Price: High to Low</option>
-                        <option value="rating" {{ request('sort') == 'rating' ? 'selected' : '' }}>Guest Rating</option>
-                        <option value="reviews" {{ request('sort') == 'reviews' ? 'selected' : '' }}>Most Reviewed</option>
+                        <option value="recommended" {{ request('sort') == 'recommended' ? 'selected' : '' }}>{{ __('frontend.search.sort_recommended') }}</option>
+                        <option value="price_low" {{ request('sort') == 'price_low' ? 'selected' : '' }}>{{ __('frontend.search.sort_price_low') }}</option>
+                        <option value="price_high" {{ request('sort') == 'price_high' ? 'selected' : '' }}>{{ __('frontend.search.sort_price_high') }}</option>
+                        <option value="rating" {{ request('sort') == 'rating' ? 'selected' : '' }}>{{ __('frontend.search.sort_rating') }}</option>
+                        <option value="reviews" {{ request('sort') == 'reviews' ? 'selected' : '' }}>{{ __('frontend.search.sort_reviews') }}</option>
                     </select>
                     <div class="flex border rounded-lg overflow-hidden">
                         <button onclick="setView('grid')" class="view-btn px-3 py-2 bg-blue-600 text-white" data-view="grid">

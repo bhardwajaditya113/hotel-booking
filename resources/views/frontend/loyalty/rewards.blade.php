@@ -1,18 +1,24 @@
-@extends('frontend.main_master')
+@extends('frontend.dashboard.account_master')
 
-@section('main')
-<div class="container mx-auto px-4 py-8">
+@section('account_breadcrumb')
+    <li><a href="{{ route('loyalty.index') }}">Loyalty</a></li>
+@endsection
+
+@section('account_title', __('frontend.account.title_rewards'))
+
+@section('account_content')
+<div class="w-full">
     <!-- Header -->
-    <div class="flex items-center justify-between mb-8">
+    <div class="flex items-center justify-between mb-8 flex-wrap gap-4">
         <div>
-            <a href="{{ route('loyalty.index') }}" class="text-blue-600 hover:underline mb-2 inline-block">
+            <a href="{{ route('loyalty.index') }}" class="text-teal-700 hover:underline mb-2 inline-block font-semibold">
                 <i class="fa-solid fa-arrow-left mr-2"></i> Back to Loyalty Dashboard
             </a>
-            <h1 class="text-3xl font-bold">Rewards Catalog</h1>
-            <p class="text-gray-600 mt-1">Redeem your points for exclusive rewards</p>
+            <h2 class="text-3xl font-bold text-slate-900">Rewards Catalog</h2>
+            <p class="text-slate-600 mt-1">Redeem your points for exclusive rewards</p>
         </div>
-        <div class="bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-6 py-3 rounded-xl shadow-lg">
-            <div class="text-sm opacity-90">Available Points</div>
+        <div class="nx-tw-hero px-6 py-3 rounded-xl shadow-lg">
+            <div class="text-sm nx-tw-hero-sub">Available Points</div>
             <div class="text-2xl font-bold">{{ number_format($userLoyalty->available_points ?? 0) }}</div>
         </div>
     </div>
@@ -20,23 +26,23 @@
     <!-- Category Tabs -->
     <div class="flex gap-2 mb-8 overflow-x-auto pb-2">
         <a href="{{ route('loyalty.rewards') }}" 
-           class="px-4 py-2 rounded-full whitespace-nowrap {{ !request('category') ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200' }}">
+           class="px-4 py-2 rounded-full whitespace-nowrap {{ !request('category') ? 'bg-teal-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200' }}">
             All Rewards
         </a>
         <a href="{{ route('loyalty.rewards', ['category' => 'discount']) }}" 
-           class="px-4 py-2 rounded-full whitespace-nowrap {{ request('category') === 'discount' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200' }}">
+           class="px-4 py-2 rounded-full whitespace-nowrap {{ request('category') === 'discount' ? 'bg-teal-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200' }}">
             <i class="fa-solid fa-percent mr-1"></i> Discounts
         </a>
         <a href="{{ route('loyalty.rewards', ['category' => 'free_night']) }}" 
-           class="px-4 py-2 rounded-full whitespace-nowrap {{ request('category') === 'free_night' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200' }}">
+           class="px-4 py-2 rounded-full whitespace-nowrap {{ request('category') === 'free_night' ? 'bg-teal-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200' }}">
             <i class="fa-solid fa-moon mr-1"></i> Free Nights
         </a>
         <a href="{{ route('loyalty.rewards', ['category' => 'upgrade']) }}" 
-           class="px-4 py-2 rounded-full whitespace-nowrap {{ request('category') === 'upgrade' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200' }}">
+           class="px-4 py-2 rounded-full whitespace-nowrap {{ request('category') === 'upgrade' ? 'bg-teal-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200' }}">
             <i class="fa-solid fa-arrow-up mr-1"></i> Upgrades
         </a>
         <a href="{{ route('loyalty.rewards', ['category' => 'experience']) }}" 
-           class="px-4 py-2 rounded-full whitespace-nowrap {{ request('category') === 'experience' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200' }}">
+           class="px-4 py-2 rounded-full whitespace-nowrap {{ request('category') === 'experience' ? 'bg-teal-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200' }}">
             <i class="fa-solid fa-star mr-1"></i> Experiences
         </a>
     </div>
@@ -135,7 +141,7 @@
                                 </span>
                             @else
                                 <button onclick="redeemReward({{ $reward->id }}, '{{ $reward->name }}', {{ $reward->points_required }})" 
-                                        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium">
+                                        class="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 text-sm font-medium">
                                     Redeem Now
                                 </button>
                             @endif
@@ -170,8 +176,8 @@
 <div id="redeemModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center">
     <div class="bg-white rounded-xl max-w-md w-full mx-4 p-6">
         <div class="text-center mb-6">
-            <div class="w-16 h-16 mx-auto bg-blue-100 rounded-full flex items-center justify-center mb-4">
-                <i class="fa-solid fa-gift text-3xl text-blue-600"></i>
+            <div class="w-16 h-16 mx-auto bg-teal-100 rounded-full flex items-center justify-center mb-4">
+                <i class="fa-solid fa-gift text-3xl text-teal-600"></i>
             </div>
             <h3 class="text-xl font-semibold">Confirm Redemption</h3>
         </div>
@@ -190,13 +196,15 @@
             </button>
             <form id="redeemForm" method="POST" class="flex-1">
                 @csrf
-                <button type="submit" class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                <button type="submit" class="w-full px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700">
                     Confirm Redemption
                 </button>
             </form>
         </div>
     </div>
 </div>
+
+@endsection
 
 @push('scripts')
 <script>
@@ -214,4 +222,3 @@ function closeRedeemModal() {
 }
 </script>
 @endpush
-@endsection

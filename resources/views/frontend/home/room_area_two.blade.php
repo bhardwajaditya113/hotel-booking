@@ -21,7 +21,7 @@
 
             <div class="col-lg-6">
                 <div class="book-img-2">
-                    <img src="{{ asset($bookarea->image) }}" alt="Images">
+                    <img src="{{ \App\Support\MediaUrl::resolve($bookarea->image, 'upload/bookarea') }}" alt="" loading="lazy" width="800" height="600">
                 </div>
             </div>
         </div>

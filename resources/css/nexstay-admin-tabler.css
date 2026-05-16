@@ -1,0 +1,252 @@
+/**
+ * Elapse admin — Tabler theme bridge (loads after Tabler CDN CSS).
+ * Scope: body.portal-admin.nex-tabler
+ */
+
+:root,
+[data-bs-theme='light'] {
+  --tblr-primary: #0d9488;
+  --tblr-primary-rgb: 13, 148, 136;
+  --tblr-link-color: #0d9488;
+  --tblr-font-sans-serif: 'DM Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+body.portal-admin.nex-tabler {
+  font-family: var(--tblr-font-sans-serif);
+}
+
+body.portal-admin.nex-tabler .navbar-brand,
+body.portal-admin.nex-tabler .page-title,
+body.portal-admin.nex-tabler h1,
+body.portal-admin.nex-tabler h2,
+body.portal-admin.nex-tabler h3,
+body.portal-admin.nex-tabler h4,
+body.portal-admin.nex-tabler .card-title {
+  font-family: 'Outfit', var(--tblr-font-sans-serif);
+  letter-spacing: -0.02em;
+}
+
+/* Main content panels from legacy Blade (.page-content) */
+body.portal-admin.nex-tabler .page-body .page-content {
+  background: var(--tblr-bg-surface);
+  border: var(--tblr-border-width) solid var(--tblr-border-color-translucent);
+  border-radius: var(--tblr-border-radius-lg);
+  box-shadow: var(--tblr-box-shadow);
+  padding: 1.25rem 1.5rem;
+}
+
+body.portal-admin.nex-tabler .page-body .page-content > .container-fluid {
+  padding: 0;
+  border: 0;
+  box-shadow: none;
+  background: transparent;
+}
+
+body.portal-admin.nex-tabler .nx-notify-dropdown {
+  min-width: 300px;
+  max-height: 360px;
+  overflow-y: auto;
+}
+
+body.portal-admin.nex-tabler .nx-notify-item {
+  white-space: normal;
+  font-size: 0.88rem;
+}
+
+body.portal-admin.nex-tabler canvas#bookingChart {
+  max-width: 100%;
+  padding: 1rem;
+}
+
+/* Elapse wordmark on light admin chrome */
+body.portal-admin.nex-tabler .elapse-wordmark--admin {
+  font-family: 'Syne', 'Outfit', var(--tblr-font-sans-serif), system-ui, sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.07em;
+  line-height: 1;
+  background-image: linear-gradient(118deg, #4338ca 0%, #0d9488 55%, #0e7490 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* -------------------------------------------------------------------------
+   Admin brand lockup & chrome (sidebar logo bar + top toolbar)
+   ------------------------------------------------------------------------- */
+
+body.portal-admin.nex-tabler .nx-admin-sidebar.navbar-vertical {
+  background: linear-gradient(
+    175deg,
+    rgba(255, 255, 255, 1) 0%,
+    rgba(248, 250, 252, 0.98) 38%,
+    rgba(240, 253, 250, 0.55) 100%
+  );
+}
+
+body.portal-admin.nex-tabler[data-bs-theme='dark'] .nx-admin-sidebar.navbar-vertical {
+  background: var(--tblr-bg-surface);
+}
+
+body.portal-admin.nex-tabler .nx-admin-brand-bar {
+  padding: 1rem 1rem 1rem 1.125rem;
+  border-bottom: 1px solid rgba(13, 148, 136, 0.12);
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.92) 0%,
+    rgba(224, 231, 255, 0.22) 42%,
+    rgba(204, 251, 241, 0.35) 100%
+  );
+  backdrop-filter: blur(10px);
+}
+
+body.portal-admin.nex-tabler .nx-admin-sidebar-toggle,
+body.portal-admin.nex-tabler .nx-admin-menu-trigger {
+  box-shadow: none;
+  background: rgba(255, 255, 255, 0.65);
+}
+
+body.portal-admin.nex-tabler .nx-admin-sidebar-toggle:focus-visible,
+body.portal-admin.nex-tabler .nx-admin-menu-trigger:focus-visible {
+  outline: 2px solid rgba(13, 148, 136, 0.45);
+  outline-offset: 2px;
+}
+
+body.portal-admin.nex-tabler .nx-admin-brand-lockup {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+body.portal-admin.nex-tabler .nx-admin-brand-lockup--sm {
+  gap: 0.55rem;
+}
+
+body.portal-admin.nex-tabler .nx-admin-brand-lockup--lg {
+  gap: 0.95rem;
+}
+
+body.portal-admin.nex-tabler .nx-admin-login-brand.nx-admin-brand-lockup {
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+body.portal-admin.nex-tabler .nx-admin-brand-mark {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.85rem;
+  overflow: hidden;
+  line-height: 0;
+  box-shadow:
+    0 6px 20px rgba(13, 148, 136, 0.2),
+    0 2px 6px rgba(15, 23, 42, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+}
+
+body.portal-admin.nex-tabler .nx-admin-brand-lockup--sm .nx-admin-brand-mark {
+  border-radius: 0.65rem;
+  box-shadow:
+    0 3px 10px rgba(13, 148, 136, 0.15),
+    0 1px 3px rgba(15, 23, 42, 0.06);
+}
+
+body.portal-admin.nex-tabler .nx-admin-brand-mark img {
+  display: block;
+  width: 2.5rem;
+  height: 2.5rem;
+}
+
+body.portal-admin.nex-tabler .nx-admin-brand-lockup--sm .nx-admin-brand-mark img {
+  width: 2rem;
+  height: 2rem;
+}
+
+body.portal-admin.nex-tabler .nx-admin-brand-lockup--lg .nx-admin-brand-mark img {
+  width: 4rem;
+  height: 4rem;
+}
+
+body.portal-admin.nex-tabler .nx-admin-brand-lockup--lg .nx-admin-brand-mark {
+  border-radius: 1.05rem;
+}
+
+body.portal-admin.nex-tabler .nx-admin-brand-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+body.portal-admin.nex-tabler .nx-admin-login-brand .nx-admin-brand-copy {
+  align-items: center;
+}
+
+body.portal-admin.nex-tabler .nx-admin-brand-name {
+  font-family: 'Syne', 'Outfit', var(--tblr-font-sans-serif), system-ui, sans-serif;
+  font-weight: 800;
+  font-size: 1.125rem;
+  letter-spacing: -0.065em;
+  line-height: 1.15;
+  background-image: linear-gradient(118deg, #4338ca 0%, #0f766e 52%, #0e7490 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+body.portal-admin.nex-tabler .nx-admin-brand-lockup--sm .nx-admin-brand-name {
+  font-size: 0.95rem;
+  letter-spacing: -0.05em;
+}
+
+body.portal-admin.nex-tabler .nx-admin-brand-lockup--lg .nx-admin-brand-name {
+  font-size: 1.45rem;
+}
+
+body.portal-admin.nex-tabler .nx-admin-brand-tag {
+  font-family: var(--tblr-font-sans-serif);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(51, 65, 85, 0.72);
+}
+
+body.portal-admin.nex-tabler .nx-admin-topbar {
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom-color: rgba(13, 148, 136, 0.1) !important;
+}
+
+body.portal-admin.nex-tabler .nx-admin-toolbar-heading {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+body.portal-admin.nex-tabler .nx-admin-toolbar-title {
+  font-family: 'Outfit', var(--tblr-font-sans-serif), system-ui, sans-serif;
+  font-weight: 700;
+  font-size: 1.05rem;
+  letter-spacing: -0.03em;
+  color: var(--tblr-body-color);
+}
+
+body.portal-admin.nex-tabler .nx-admin-toolbar-sub {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--tblr-secondary);
+}
+
+body.portal-admin.nex-tabler .nx-admin-login-heading {
+  font-family: 'Outfit', var(--tblr-font-sans-serif), system-ui, sans-serif;
+  letter-spacing: -0.03em;
+}

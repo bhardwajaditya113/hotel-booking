@@ -277,22 +277,13 @@ class EnhancedFeaturesSeeder extends Seeder
 
         $methods = [
             [
-                'name' => 'Stripe',
-                'slug' => 'stripe',
-                'provider' => 'stripe',
-                'description' => 'Pay securely with credit or debit card',
-                'icon' => 'fa-credit-card',
-                'is_active' => true,
-                'sort_order' => 1,
-            ],
-            [
                 'name' => 'Razorpay',
                 'slug' => 'razorpay',
                 'provider' => 'razorpay',
                 'description' => 'UPI, Net Banking, Cards, Wallets',
                 'icon' => 'fa-building-columns',
                 'is_active' => true,
-                'sort_order' => 2,
+                'sort_order' => 1,
             ],
             [
                 'name' => 'Wallet',
@@ -301,7 +292,7 @@ class EnhancedFeaturesSeeder extends Seeder
                 'description' => 'Pay using your wallet balance',
                 'icon' => 'fa-wallet',
                 'is_active' => true,
-                'sort_order' => 3,
+                'sort_order' => 2,
             ],
         ];
 

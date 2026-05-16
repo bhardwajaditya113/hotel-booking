@@ -1,14 +1,20 @@
-@extends('frontend.main_master')
+@extends('frontend.dashboard.account_master')
 
-@section('main')
-<div class="container mx-auto px-4 py-8">
+@section('account_breadcrumb')
+    <li><a href="{{ route('notifications.index') }}">Notifications</a></li>
+@endsection
+
+@section('account_title', __('frontend.account.title_notification_settings'))
+
+@section('account_content')
+<div class="w-full">
     <div class="max-w-2xl mx-auto">
         <!-- Header -->
         <div class="mb-8">
-            <a href="{{ route('notifications.index') }}" class="text-blue-600 hover:underline mb-2 inline-block">
+            <a href="{{ route('notifications.index') }}" class="text-teal-700 hover:underline mb-2 inline-block font-semibold">
                 <i class="fa-solid fa-arrow-left mr-2"></i> Back to Notifications
             </a>
-            <h1 class="text-3xl font-bold">Notification Settings</h1>
+            <h2 class="text-3xl font-bold text-slate-900">Notification Settings</h2>
             <p class="text-gray-600 mt-2">Choose what notifications you want to receive</p>
         </div>
 
@@ -34,7 +40,7 @@
                             <p class="text-sm text-gray-500">Receive confirmation when your booking is confirmed</p>
                         </div>
                         <input type="checkbox" name="booking_confirmations" value="1"
-                               class="w-5 h-5 text-blue-600 rounded"
+                               class="w-5 h-5 text-teal-600 rounded"
                                {{ $preferences['booking_confirmations'] ?? true ? 'checked' : '' }}>
                     </label>
 
@@ -44,7 +50,7 @@
                             <p class="text-sm text-gray-500">Get reminders before your check-in date</p>
                         </div>
                         <input type="checkbox" name="booking_reminders" value="1"
-                               class="w-5 h-5 text-blue-600 rounded"
+                               class="w-5 h-5 text-teal-600 rounded"
                                {{ $preferences['booking_reminders'] ?? true ? 'checked' : '' }}>
                     </label>
 
@@ -54,7 +60,7 @@
                             <p class="text-sm text-gray-500">Notifications about payments, refunds, and wallet</p>
                         </div>
                         <input type="checkbox" name="payment_notifications" value="1"
-                               class="w-5 h-5 text-blue-600 rounded"
+                               class="w-5 h-5 text-teal-600 rounded"
                                {{ $preferences['payment_notifications'] ?? true ? 'checked' : '' }}>
                     </label>
 
@@ -64,7 +70,7 @@
                             <p class="text-sm text-gray-500">Special deals, discounts, and seasonal offers</p>
                         </div>
                         <input type="checkbox" name="promotional_offers" value="1"
-                               class="w-5 h-5 text-blue-600 rounded"
+                               class="w-5 h-5 text-teal-600 rounded"
                                {{ $preferences['promotional_offers'] ?? false ? 'checked' : '' }}>
                     </label>
 
@@ -74,7 +80,7 @@
                             <p class="text-sm text-gray-500">Points earned, tier upgrades, and rewards</p>
                         </div>
                         <input type="checkbox" name="loyalty_updates" value="1"
-                               class="w-5 h-5 text-blue-600 rounded"
+                               class="w-5 h-5 text-teal-600 rounded"
                                {{ $preferences['loyalty_updates'] ?? true ? 'checked' : '' }}>
                     </label>
 
@@ -84,7 +90,7 @@
                             <p class="text-sm text-gray-500">Reminder to leave a review after your stay</p>
                         </div>
                         <input type="checkbox" name="review_reminders" value="1"
-                               class="w-5 h-5 text-blue-600 rounded"
+                               class="w-5 h-5 text-teal-600 rounded"
                                {{ $preferences['review_reminders'] ?? true ? 'checked' : '' }}>
                     </label>
                 </div>
@@ -98,8 +104,8 @@
                 <div class="space-y-4">
                     <label class="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 cursor-pointer">
                         <div class="flex items-center">
-                            <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3">
-                                <i class="fa-solid fa-envelope text-blue-600"></i>
+                            <div class="w-10 h-10 bg-teal-100 rounded-full flex items-center justify-center mr-3">
+                                <i class="fa-solid fa-envelope text-teal-600"></i>
                             </div>
                             <div>
                                 <div class="font-medium">Email Notifications</div>
@@ -107,7 +113,7 @@
                             </div>
                         </div>
                         <input type="checkbox" name="email_notifications" value="1"
-                               class="w-5 h-5 text-blue-600 rounded"
+                               class="w-5 h-5 text-teal-600 rounded"
                                {{ $preferences['email_notifications'] ?? true ? 'checked' : '' }}>
                     </label>
 
@@ -122,7 +128,7 @@
                             </div>
                         </div>
                         <input type="checkbox" name="sms_notifications" value="1"
-                               class="w-5 h-5 text-blue-600 rounded"
+                               class="w-5 h-5 text-teal-600 rounded"
                                {{ $preferences['sms_notifications'] ?? false ? 'checked' : '' }}>
                     </label>
 
@@ -137,7 +143,7 @@
                             </div>
                         </div>
                         <input type="checkbox" name="push_notifications" value="1"
-                               class="w-5 h-5 text-blue-600 rounded"
+                               class="w-5 h-5 text-teal-600 rounded"
                                {{ $preferences['push_notifications'] ?? true ? 'checked' : '' }}>
                     </label>
                 </div>
@@ -148,7 +154,7 @@
                 <a href="{{ route('notifications.index') }}" class="flex-1 px-6 py-3 border rounded-lg text-center hover:bg-gray-50">
                     Cancel
                 </a>
-                <button type="submit" class="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold">
+                <button type="submit" class="flex-1 px-6 py-3 bg-teal-600 text-white rounded-lg hover:bg-teal-700 font-semibold">
                     <i class="fa-solid fa-check mr-2"></i> Save Preferences
                 </button>
             </div>
@@ -165,6 +171,8 @@
     </div>
 </div>
 
+@endsection
+
 @push('scripts')
 <script>
 function unsubscribeAll() {
@@ -175,4 +183,3 @@ function unsubscribeAll() {
 }
 </script>
 @endpush
-@endsection

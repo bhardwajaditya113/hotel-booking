@@ -49,7 +49,7 @@
         <input type="checkbox" name="selectedItem[]" value="{{ $item->id }}">
         </td>
                             <td>{{ $key+1 }}</td>
-                            <td> <img src="{{ asset($item->photo_name) }}" alt="" style="width:70px; height:40px;" > </td>
+                            <td> <img src="{{ \App\Support\MediaUrl::resolve($item->photo_name, 'upload/gallery') }}" alt="" style="width:70px; height:40px;" > </td>
                           
                             <td>
     <a href="{{ route('edit.gallery',$item->id) }}" class="btn btn-warning px-3 radius-30"> Edit</a>

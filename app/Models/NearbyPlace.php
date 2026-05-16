@@ -14,16 +14,14 @@ class NearbyPlace extends Model
     protected $casts = [
         'latitude' => 'decimal:8',
         'longitude' => 'decimal:8',
-        'distance_km' => 'decimal:2',
+        'distance' => 'decimal:2',
         'is_active' => 'boolean',
     ];
 
     // Relationships
-    public function rooms()
+    public function room()
     {
-        return $this->belongsToMany(Room::class, 'room_nearby_places')
-            ->withPivot('distance_km', 'walking_time_mins', 'driving_time_mins')
-            ->withTimestamps();
+        return $this->belongsTo(Room::class);
     }
 
     // Scopes
@@ -40,7 +38,7 @@ class NearbyPlace extends Model
     // Get icon based on type
     public function getTypeIconAttribute()
     {
-        return match($this->type) {
+        return match ($this->type) {
             'airport' => 'fa-plane',
             'railway' => 'fa-train',
             'bus_station' => 'fa-bus',
@@ -68,9 +66,11 @@ class NearbyPlace extends Model
     // Get formatted distance
     public function getFormattedDistanceAttribute()
     {
-        if ($this->distance_km < 1) {
-            return round($this->distance_km * 1000) . ' m';
+        $km = $this->distance ?? $this->distance_km ?? 0;
+        if ($km < 1) {
+            return round($km * 1000).' m';
         }
-        return number_format($this->distance_km, 1) . ' km';
+
+        return number_format((float) $km, 1).' km';
     }
 }

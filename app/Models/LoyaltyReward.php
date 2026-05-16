@@ -41,15 +41,15 @@ class LoyaltyReward extends Model
         return $query->active()
             ->where(function ($q) {
                 $q->whereNull('valid_from')
-                  ->orWhere('valid_from', '<=', now());
+                    ->orWhere('valid_from', '<=', now());
             })
             ->where(function ($q) {
                 $q->whereNull('valid_until')
-                  ->orWhere('valid_until', '>=', now());
+                    ->orWhere('valid_until', '>=', now());
             })
             ->where(function ($q) {
                 $q->whereNull('quantity_available')
-                  ->orWhereRaw('quantity_redeemed < quantity_available');
+                    ->orWhereRaw('quantity_redeemed < quantity_available');
             });
     }
 
@@ -62,46 +62,64 @@ class LoyaltyReward extends Model
     {
         return $query->where(function ($q) use ($tierId) {
             $q->whereNull('min_tier_id')
-              ->orWhere('min_tier_id', '<=', $tierId);
+                ->orWhere('min_tier_id', '<=', $tierId);
         });
+    }
+
+    public function scopeOrdered($query)
+    {
+        return $query->orderBy('sort_order')->orderBy('id');
     }
 
     // Check availability
     public function isAvailable()
     {
-        if (!$this->is_active) return false;
-        
-        if ($this->valid_from && $this->valid_from->isFuture()) return false;
-        if ($this->valid_until && $this->valid_until->isPast()) return false;
-        
-        if ($this->quantity_available !== null && 
+        if (! $this->is_active) {
+            return false;
+        }
+
+        if ($this->valid_from && $this->valid_from->isFuture()) {
+            return false;
+        }
+        if ($this->valid_until && $this->valid_until->isPast()) {
+            return false;
+        }
+
+        if ($this->quantity_available !== null &&
             $this->quantity_redeemed >= $this->quantity_available) {
             return false;
         }
-        
+
         return true;
     }
 
     // Get remaining quantity
     public function getRemainingQuantityAttribute()
     {
-        if ($this->quantity_available === null) return null;
+        if ($this->quantity_available === null) {
+            return null;
+        }
+
         return max(0, $this->quantity_available - $this->quantity_redeemed);
     }
 
     // Check if user can redeem
     public function canBeRedeemedBy($userLoyalty)
     {
-        if (!$this->isAvailable()) return false;
-        
+        if (! $this->isAvailable()) {
+            return false;
+        }
+
         // Check points
-        if ($userLoyalty->available_points < $this->points_required) return false;
-        
+        if ($userLoyalty->available_points < $this->points_required) {
+            return false;
+        }
+
         // Check tier
         if ($this->min_tier_id && $userLoyalty->loyalty_tier_id < $this->min_tier_id) {
             return false;
         }
-        
+
         return true;
     }
 
@@ -109,8 +127,8 @@ class LoyaltyReward extends Model
     public function redeem($userId, $bookingId = null)
     {
         $userLoyalty = UserLoyalty::getOrCreate($userId);
-        
-        if (!$this->canBeRedeemedBy($userLoyalty)) {
+
+        if (! $this->canBeRedeemedBy($userLoyalty)) {
             return null;
         }
 
@@ -121,7 +139,9 @@ class LoyaltyReward extends Model
             $bookingId
         );
 
-        if (!$transaction) return null;
+        if (! $transaction) {
+            return null;
+        }
 
         // Increment redemption count
         $this->increment('quantity_redeemed');
@@ -143,7 +163,7 @@ class LoyaltyReward extends Model
     // Get type badge
     public function getTypeBadgeAttribute()
     {
-        return match($this->type) {
+        return match ($this->type) {
             'discount' => 'primary',
             'free_night' => 'success',
             'upgrade' => 'info',

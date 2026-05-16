@@ -1,7 +1,9 @@
-@extends('frontend.main_master')
+@extends('frontend.dashboard.account_master')
 
-@section('main')
-<div class="container mx-auto px-4 py-8">
+@section('account_title', __('frontend.account.title_wishlists'))
+
+@section('account_content')
+<div class="w-full">
     <!-- Header -->
     <div class="flex items-center justify-between mb-8">
         <div>
@@ -18,20 +20,20 @@
             @foreach($wishlists as $wishlist)
                 <div class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition group">
                     <!-- Cover Image Grid -->
-                    <a href="{{ route('wishlist.show', $wishlist->id) }}" class="block">
+                    <a href="{{ route('wishlists.show', $wishlist->id) }}" class="block">
                         <div class="h-48 bg-gray-200 relative">
                             @if($wishlist->items->count() >= 4)
                                 <div class="grid grid-cols-2 h-full">
                                     @foreach($wishlist->items->take(4) as $item)
                                         <div class="relative overflow-hidden">
-                                            <img src="{{ asset($item->room->image ?? 'frontend/img/placeholder.jpg') }}" 
-                                                 alt="{{ $item->room->room_name }}" 
+                                            <img src="{{ $item->room?->image_url ?? \App\Support\MediaUrl::resolve(null) }}" 
+                                                 alt="{{ $item->room->short_desc ?? 'Room' }}" 
                                                  class="w-full h-full object-cover">
                                         </div>
                                     @endforeach
                                 </div>
                             @elseif($wishlist->items->count() > 0)
-                                <img src="{{ asset($wishlist->items->first()->room->image ?? 'frontend/img/placeholder.jpg') }}" 
+                                <img src="{{ $wishlist->items->first()->room?->image_url ?? \App\Support\MediaUrl::resolve(null) }}" 
                                      alt="Wishlist Cover" 
                                      class="w-full h-full object-cover">
                             @else
@@ -46,14 +48,14 @@
                                         class="w-8 h-8 bg-white rounded-full shadow flex items-center justify-center hover:bg-gray-100">
                                     <i class="fa-solid fa-share-nodes text-gray-700"></i>
                                 </button>
-                                <button onclick="event.preventDefault(); editWishlist({{ $wishlist->id }}, '{{ $wishlist->name }}', '{{ $wishlist->is_public ? '1' : '0' }}')" 
+                                <button onclick="event.preventDefault(); editWishlist({{ $wishlist->id }}, '{{ $wishlist->name }}', '{{ ($wishlist->privacy ?? '') === 'public' ? '1' : '0' }}')" 
                                         class="w-8 h-8 bg-white rounded-full shadow flex items-center justify-center hover:bg-gray-100">
                                     <i class="fa-solid fa-pen text-gray-700"></i>
                                 </button>
                             </div>
 
                             <!-- Privacy Badge -->
-                            @if($wishlist->is_public)
+                            @if(($wishlist->privacy ?? 'private') === 'public')
                                 <span class="absolute top-3 left-3 px-2 py-1 bg-green-500 text-white text-xs rounded-full">
                                     <i class="fa-solid fa-globe mr-1"></i> Public
                                 </span>
@@ -66,7 +68,7 @@
                     </a>
 
                     <div class="p-4">
-                        <a href="{{ route('wishlist.show', $wishlist->id) }}" class="block">
+                        <a href="{{ route('wishlists.show', $wishlist->id) }}" class="block">
                             <h3 class="font-semibold text-lg hover:text-blue-600">{{ $wishlist->name }}</h3>
                         </a>
                         <p class="text-gray-500 text-sm mt-1">{{ $wishlist->items->count() }} saved • Updated {{ $wishlist->updated_at->diffForHumans() }}</p>
@@ -102,9 +104,11 @@
             @endforeach
         </div>
 
+        @if(method_exists($wishlists, 'hasPages') && $wishlists->hasPages())
         <div class="mt-8">
             {{ $wishlists->links() }}
         </div>
+        @endif
     @else
         <!-- Empty State -->
         <div class="text-center py-16">
@@ -216,6 +220,8 @@
     </div>
 </div>
 
+@endsection
+
 @push('scripts')
 <script>
 let currentWishlistId = null;
@@ -224,7 +230,7 @@ function showCreateWishlistModal() {
     document.getElementById('modalTitle').textContent = 'Create Wishlist';
     document.getElementById('submitText').textContent = 'Create';
     document.getElementById('formMethod').value = 'POST';
-    document.getElementById('wishlistForm').action = '{{ route("wishlist.store") }}';
+    document.getElementById('wishlistForm').action = '{{ route("wishlists.store") }}';
     document.getElementById('wishlistName').value = '';
     document.getElementById('wishlistPublic').checked = false;
     document.getElementById('wishlistModal').classList.remove('hidden');
@@ -235,7 +241,7 @@ function editWishlist(id, name, isPublic) {
     document.getElementById('modalTitle').textContent = 'Edit Wishlist';
     document.getElementById('submitText').textContent = 'Update';
     document.getElementById('formMethod').value = 'PUT';
-    document.getElementById('wishlistForm').action = `/wishlist/${id}`;
+    document.getElementById('wishlistForm').action = `/wishlists/${id}`;
     document.getElementById('wishlistName').value = name;
     document.getElementById('wishlistPublic').checked = isPublic === '1';
     document.getElementById('wishlistModal').classList.remove('hidden');
@@ -250,7 +256,7 @@ function closeWishlistModal() {
 function shareWishlist(id) {
     currentWishlistId = id;
     
-    fetch(`/wishlist/${id}/share`, {
+    fetch(`/wishlists/${id}/share`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -296,7 +302,7 @@ function shareVia(platform) {
 
 function deleteWishlist(id) {
     if (confirm('Are you sure you want to delete this wishlist?')) {
-        fetch(`/wishlist/${id}`, {
+        fetch(`/wishlists/${id}`, {
             method: 'DELETE',
             headers: {
                 'X-CSRF-TOKEN': '{{ csrf_token() }}'
@@ -312,4 +318,3 @@ function deleteWishlist(id) {
 }
 </script>
 @endpush
-@endsection

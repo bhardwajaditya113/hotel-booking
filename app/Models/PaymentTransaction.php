@@ -17,6 +17,7 @@ class PaymentTransaction extends Model
         'fee' => 'decimal:2',
         'refunded_amount' => 'decimal:2',
         'metadata' => 'array',
+        'provider_response' => 'array',
         'refunded_at' => 'datetime',
     ];
 

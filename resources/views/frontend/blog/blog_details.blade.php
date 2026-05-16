@@ -6,10 +6,10 @@
         <div class="inner-title">
             <ul>
                 <li>
-                    <a href="index.html">Home</a>
+                    <a href="{{ url('/') }}">{{ __('site.nav.home') }}</a>
                 </li>
                 <li><i class='bx bx-chevron-right'></i></li>
-                <li>Blog Details </li>
+                <li>{{ __('frontend.blog.details_breadcrumb') }}</li>
             </ul>
             <h3>{{ $blog->post_titile }}</h3>
         </div>
@@ -24,7 +24,7 @@
             <div class="col-lg-8">
                 <div class="blog-article">
                     <div class="blog-article-img">
-                        <img src="{{ asset($blog->post_image) }}" alt="Images" style="width: 1000px; height:600px;">
+                        <img src="{{ \App\Support\MediaUrl::resolve($blog->post_image, 'upload/blog') }}" alt="" style="max-width: 100%; height: auto;">
                     </div>
 
                     <div class="blog-article-title">
@@ -52,7 +52,7 @@
     $comment = App\Models\Comment::where('post_id',$blog->id)->where('status','1')->limit(5)->get();
 @endphp
                     <div class="comments-wrap">
-                        <h3 class="title">Comments</h3>
+                        <h3 class="title">{{ __('frontend.blog.comments_title') }}</h3>
                         <ul>
                             @foreach ($comment as $com) 
                             <li>
@@ -72,7 +72,7 @@
                     <div class="comments-form">
                         <div class="contact-form">
       
-                            <h2>Leave A Comment</h2>
+                            <h2>{{ __('frontend.blog.leave_comment') }}</h2>
     @php 
         if (Auth::check()) {
            $id = Auth::user()->id;
@@ -97,14 +97,14 @@
 
             <div class="col-lg-12 col-md-12">
                 <div class="form-group">
-                    <textarea name="message" class="form-control" id="message" cols="30" rows="8" required data-error="Write your message" placeholder="Your Message"></textarea>
+                    <textarea name="message" class="form-control" id="message" cols="30" rows="8" required data-error="{{ __('frontend.blog.data_error_message') }}" placeholder="{{ __('frontend.blog.placeholder_message') }}"></textarea>
                 </div>
             </div>
 
             
             <div class="col-lg-12 col-md-12">
                 <button type="submit" class="default-btn btn-bg-three">
-                    Post A Comment
+                    {{ __('frontend.blog.post_comment') }}
                 </button>
             </div>
         </div>
@@ -112,7 +112,7 @@
 
     @else
 
-    <p>Plz <a href="{{ route('login') }}">Login</a> First for Add Comment </p>
+    <p>{{ __('frontend.blog.login_prefix') }} <a href="{{ route('login') }}">{{ __('frontend.blog.login_link') }}</a> {{ __('frontend.blog.login_suffix') }}</p>
 
     @endauth   
                         </div>
@@ -124,7 +124,7 @@
                 <div class="side-bar-wrap">
                     <div class="search-widget">
                         <form class="search-form">
-                            <input type="search" class="form-control" placeholder="Search...">
+                            <input type="search" class="form-control" placeholder="{{ __('frontend.common.search_placeholder') }}">
                             <button type="submit">
                                 <i class="bx bx-search"></i>
                             </button>
@@ -132,12 +132,12 @@
                     </div>
 
                     <div class="services-bar-widget">
-                        <h3 class="title">Blog Category</h3>
+                        <h3 class="title">{{ __('frontend.blog.category_title') }}</h3>
                         <div class="side-bar-categories">
                             @foreach ($bcategory as $cat) 
                             <ul>
                                 <li>
-                                    <a href="{{ url('blog/cat/list/'.$cat->id) }}">{{ $cat->category_name }}</a>
+                                    <a href="{{ route('blog.cat.list', $cat->id) }}">{{ $cat->category_name }}</a>
                                 </li> 
                             </ul>
                             @endforeach
@@ -145,17 +145,17 @@
                     </div>
 
                     <div class="side-bar-widget">
-                        <h3 class="title">Recent Posts</h3>
+                        <h3 class="title">{{ __('frontend.blog.recent_posts') }}</h3>
                         <div class="widget-popular-post">
                             
                             @foreach ($lpost as $post)   
                             <article class="item">
-                                <a href="blog-details.html" class="thumb">
-                <img src="{{ asset($post->post_image) }}" alt="Images" style="width: 80px; height:80px;">      
+                                <a href="{{ route('blog.details', $post->post_slug) }}" class="thumb">
+                <img src="{{ \App\Support\MediaUrl::resolve($post->post_image, 'upload/blog') }}" alt="" style="width: 80px; height:80px;">      
                                 </a>
                                 <div class="info">
                                     <h4 class="title-text">
-                                        <a href="blog-details.html">
+                                        <a href="{{ route('blog.details', $post->post_slug) }}">
                                             {{ $post->post_titile }}
                                         </a>
                                     </h4>

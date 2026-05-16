@@ -7,11 +7,11 @@
     <div class="container">
         <div class="inner-title">
             <ul>
-                <li><a href="{{ url('/') }}">Home</a></li>
+                <li><a href="{{ url('/') }}">{{ __('site.nav.home') }}</a></li>
                 <li><i class='bx bx-chevron-right'></i></li>
-                <li>Payment</li>
+                <li>{{ __('frontend.payment.breadcrumb') }}</li>
             </ul>
-            <h3>Complete Payment</h3>
+            <h3>{{ __('frontend.payment.page_title') }}</h3>
         </div>
     </div>
 </div>
@@ -24,60 +24,60 @@
             <div class="col-lg-6">
                 <div class="card shadow">
                     <div class="card-header bg-primary text-white">
-                        <h4 class="mb-0"><i class='bx bx-credit-card'></i> Payment Details</h4>
+                        <h4 class="mb-0"><i class='bx bx-credit-card'></i> {{ __('frontend.payment.details_heading') }}</h4>
                     </div>
                     <div class="card-body">
                         <!-- Booking Summary -->
                         <div class="booking-summary mb-4">
-                            <h5>Booking Summary</h5>
+                            <h5>{{ __('frontend.payment.booking_summary') }}</h5>
                             <hr>
                             <div class="d-flex justify-content-between mb-2">
-                                <span>Room:</span>
-                                <strong>{{ $booking->room->type->name ?? 'Room' }}</strong>
+                                <span>{{ __('frontend.payment.room') }}</span>
+                                <strong>{{ $booking->room->type->name ?? __('frontend.booking.room_fallback') }}</strong>
                             </div>
                             <div class="d-flex justify-content-between mb-2">
-                                <span>Check-in:</span>
+                                <span>{{ __('frontend.payment.check_in') }}</span>
                                 <strong>{{ \Carbon\Carbon::parse($booking->check_in)->format('M d, Y') }}</strong>
                             </div>
                             <div class="d-flex justify-content-between mb-2">
-                                <span>Check-out:</span>
+                                <span>{{ __('frontend.payment.check_out') }}</span>
                                 <strong>{{ \Carbon\Carbon::parse($booking->check_out)->format('M d, Y') }}</strong>
                             </div>
                             <div class="d-flex justify-content-between mb-2">
-                                <span>Nights:</span>
+                                <span>{{ __('frontend.payment.nights') }}</span>
                                 <strong>{{ $booking->total_night }}</strong>
                             </div>
                             <div class="d-flex justify-content-between mb-2">
-                                <span>Rooms:</span>
+                                <span>{{ __('frontend.payment.rooms') }}</span>
                                 <strong>{{ $booking->number_of_rooms }}</strong>
                             </div>
                             <hr>
                             <div class="d-flex justify-content-between mb-2">
-                                <span>Subtotal:</span>
+                                <span>{{ __('frontend.payment.subtotal') }}</span>
                                 <span>${{ number_format($booking->subtotal, 2) }}</span>
                             </div>
                             @if($booking->discount > 0)
                             <div class="d-flex justify-content-between mb-2 text-success">
-                                <span>Discount:</span>
+                                <span>{{ __('frontend.payment.discount') }}</span>
                                 <span>-${{ number_format($booking->discount, 2) }}</span>
                             </div>
                             @endif
                             <hr>
                             <div class="d-flex justify-content-between">
-                                <strong>Total (USD):</strong>
+                                <strong>{{ __('frontend.payment.total_usd') }}</strong>
                                 <strong class="text-primary">${{ number_format($booking->total_price, 2) }}</strong>
                             </div>
                             <div class="d-flex justify-content-between mt-2">
-                                <strong>Total (INR):</strong>
+                                <strong>{{ __('frontend.payment.total_inr') }}</strong>
                                 <strong class="text-success">₹{{ number_format($booking->total_price * 83, 2) }}</strong>
                             </div>
-                            <small class="text-muted">* Exchange rate: 1 USD = 83 INR (approximate)</small>
+                            <small class="text-muted">{{ __('frontend.payment.exchange_note') }}</small>
                         </div>
                         
                         <!-- Razorpay Button -->
                         <div class="text-center">
                             <button id="rzp-button" class="default-btn btn-bg-one border-radius-5 w-100 py-3">
-                                <i class='bx bx-lock-alt'></i> Pay with Razorpay
+                                <i class='bx bx-lock-alt'></i> {{ __('frontend.payment.pay_with_razorpay') }}
                             </button>
                             
                             @if(!app()->environment('production'))
@@ -86,15 +86,15 @@
                                 @csrf
                                 <input type="hidden" name="booking_id" value="{{ $booking->id }}">
                                 <button type="submit" class="btn btn-success w-100 py-2">
-                                    <i class='bx bx-check-circle'></i> Test Payment (Skip Razorpay)
+                                    <i class='bx bx-check-circle'></i> {{ __('frontend.payment.test_payment') }}
                                 </button>
-                                <small class="text-muted d-block mt-2">Development mode: Complete payment without Razorpay</small>
+                                <small class="text-muted d-block mt-2">{{ __('frontend.payment.test_payment_help') }}</small>
                             </form>
                             @endif
                             
                             <p class="mt-3 text-muted">
                                 <i class='bx bx-shield-quarter'></i> 
-                                Secure payment powered by Razorpay
+                                {{ __('frontend.payment.secure_footer') }}
                             </p>
                             <img src="https://razorpay.com/assets/razorpay-logo.svg" alt="Razorpay" style="height: 30px;" class="mt-2">
                         </div>

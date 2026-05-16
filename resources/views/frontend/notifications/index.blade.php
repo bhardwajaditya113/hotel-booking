@@ -1,7 +1,9 @@
-@extends('frontend.main_master')
+@extends('frontend.dashboard.account_master')
 
-@section('main')
-<div class="container mx-auto px-4 py-8">
+@section('account_title', __('frontend.account.title_notifications'))
+
+@section('account_content')
+<div class="w-full">
     <!-- Header -->
     <div class="flex items-center justify-between mb-8">
         <div>
@@ -155,6 +157,8 @@
     @endif
 </div>
 
+@endsection
+
 @push('scripts')
 <script>
 function filterNotifications(type) {
@@ -234,4 +238,3 @@ function deleteNotification(id) {
 }
 </script>
 @endpush
-@endsection

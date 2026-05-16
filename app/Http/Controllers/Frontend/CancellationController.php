@@ -9,6 +9,7 @@ use App\Models\CancellationPolicy;
 use App\Models\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Razorpay\Api\Api;
 
 class CancellationController extends Controller
 {
@@ -20,14 +21,14 @@ class CancellationController extends Controller
         $booking = Booking::with(['room.cancellationPolicy', 'user'])
             ->where('user_id', Auth::id())
             ->findOrFail($bookingId);
-        
-        if (!$booking->canBeCancelled()) {
+
+        if (! $booking->canBeCancelled()) {
             return back()->with('error', 'This booking cannot be cancelled');
         }
-        
+
         $policy = $booking->room?->cancellationPolicy ?? CancellationPolicy::getDefault();
         $refundBreakdown = $this->calculateRefundBreakdown($booking, $policy);
-        
+
         return view('frontend.cancellation.show', compact('booking', 'policy', 'refundBreakdown'));
     }
 
@@ -37,37 +38,57 @@ class CancellationController extends Controller
     protected function calculateRefundBreakdown($booking, $policy)
     {
         $checkIn = $booking->check_in;
-        $hoursUntilCheckIn = now()->diffInHours($checkIn, false);
-        $daysUntilCheckIn = now()->diffInDays($checkIn, false);
-        
+        $hoursUntilCheckIn = max(0, (int) now()->diffInHours($checkIn, false));
+        $daysUntilCheckIn = max(0, (int) now()->diffInDays($checkIn, false));
+
         $refundPercentage = 0;
         $applicableRule = null;
-        
+
         if ($policy) {
-            if ($hoursUntilCheckIn <= $policy->hours_before_full_charge) {
-                $refundPercentage = 0;
-                $applicableRule = 'Full charge applies (within ' . $policy->hours_before_full_charge . ' hours)';
-            } elseif ($daysUntilCheckIn <= $policy->days_before_partial_refund) {
-                $refundPercentage = $policy->partial_refund_percentage;
-                $applicableRule = 'Partial refund (' . $policy->partial_refund_percentage . '%)';
+            if (isset($policy->hours_before_full_charge)) {
+                if ($hoursUntilCheckIn <= $policy->hours_before_full_charge) {
+                    $refundPercentage = 0;
+                    $applicableRule = 'Full charge applies (within '.$policy->hours_before_full_charge.' hours)';
+                } elseif ($daysUntilCheckIn <= $policy->days_before_partial_refund) {
+                    $refundPercentage = (float) $policy->partial_refund_percentage;
+                    $applicableRule = 'Partial refund ('.$policy->partial_refund_percentage.'%)';
+                } else {
+                    $refundPercentage = (float) $policy->full_refund_percentage;
+                    $applicableRule = 'Full refund ('.$policy->full_refund_percentage.'%)';
+                }
             } else {
-                $refundPercentage = $policy->full_refund_percentage;
-                $applicableRule = 'Full refund (' . $policy->full_refund_percentage . '%)';
+                $rules = $policy->rules;
+                if (is_string($rules)) {
+                    $rules = json_decode($rules, true) ?: [];
+                }
+                if (isset($rules['deadline_hours'])) {
+                    $deadline = (int) $rules['deadline_hours'];
+                    if ($hoursUntilCheckIn >= $deadline) {
+                        $refundPercentage = (float) ($rules['full_refund_percentage'] ?? 100);
+                        $applicableRule = 'Full refund under '.$policy->name.' policy';
+                    } else {
+                        $refundPercentage = (float) ($rules['partial_refund_percentage'] ?? 0);
+                        $applicableRule = 'Partial refund under '.$policy->name.' policy';
+                    }
+                } else {
+                    $refundPercentage = (float) $policy->calculateRefundPercentage($hoursUntilCheckIn);
+                    $applicableRule = 'Based on '.$policy->name.' policy';
+                }
             }
         }
-        
+
         $originalAmount = $booking->total_price;
         $refundAmount = ($originalAmount * $refundPercentage) / 100;
         $penaltyAmount = $originalAmount - $refundAmount;
-        
+
         return [
             'original_amount' => $originalAmount,
             'refund_percentage' => $refundPercentage,
             'refund_amount' => round($refundAmount, 2),
             'penalty_amount' => round($penaltyAmount, 2),
             'applicable_rule' => $applicableRule,
-            'hours_until_checkin' => max(0, $hoursUntilCheckIn),
-            'days_until_checkin' => max(0, $daysUntilCheckIn),
+            'hours_until_checkin' => $hoursUntilCheckIn,
+            'days_until_checkin' => $daysUntilCheckIn,
             'policy_name' => $policy?->name ?? 'Standard Policy',
         ];
     }
@@ -80,28 +101,28 @@ class CancellationController extends Controller
         $booking = Booking::with(['room.cancellationPolicy', 'user'])
             ->where('user_id', Auth::id())
             ->findOrFail($bookingId);
-        
-        if (!$booking->canBeCancelled()) {
+
+        if (! $booking->canBeCancelled()) {
             return back()->with('error', 'This booking cannot be cancelled');
         }
-        
+
         $validated = $request->validate([
             'reason' => 'nullable|string|max:1000',
             'reason_type' => 'nullable|in:change_of_plans,found_better_option,emergency,other',
         ]);
-        
+
         $reason = $validated['reason_type'] ?? 'other';
         if ($validated['reason']) {
-            $reason .= ': ' . $validated['reason'];
+            $reason .= ': '.$validated['reason'];
         }
-        
+
         try {
             // Process the cancellation
             $cancellation = $booking->processCancellation(Auth::id(), $reason);
-            
+
             // Process refund
             $this->processRefund($booking, $cancellation);
-            
+
             // Send notification
             Notification::send(
                 $booking->user_id,
@@ -110,16 +131,16 @@ class CancellationController extends Controller
                     'booking_code' => $booking->code,
                     'guest_name' => $booking->name,
                     'hotel_name' => config('app.name'),
-                    'refund_amount' => '₹' . number_format($cancellation->refund_amount, 2),
+                    'refund_amount' => '₹'.number_format($cancellation->refund_amount, 2),
                 ],
                 $booking->id
             );
-            
+
             return redirect()->route('user.bookings')
-                ->with('success', 'Booking cancelled successfully. Refund of ₹' . number_format($cancellation->refund_amount, 2) . ' will be processed.');
-                
+                ->with('success', 'Booking cancelled successfully. Refund of ₹'.number_format($cancellation->refund_amount, 2).' will be processed.');
+
         } catch (\Exception $e) {
-            return back()->with('error', 'Failed to cancel booking: ' . $e->getMessage());
+            return back()->with('error', 'Failed to cancel booking: '.$e->getMessage());
         }
     }
 
@@ -130,15 +151,16 @@ class CancellationController extends Controller
     {
         if ($cancellation->refund_amount <= 0) {
             $cancellation->update(['status' => 'no_refund']);
+
             return;
         }
-        
+
         // Find the original payment
         $originalPayment = $booking->successfulPayments()->first();
-        
+
         $refundMethod = request('refund_method', 'wallet'); // wallet or original
-        
-        if ($refundMethod === 'wallet' || !$originalPayment) {
+
+        if ($refundMethod === 'wallet' || ! $originalPayment) {
             // Credit to wallet
             $wallet = $booking->user->getOrCreateWallet();
             $wallet->credit(
@@ -147,7 +169,7 @@ class CancellationController extends Controller
                 "Refund for cancelled booking #{$booking->code}",
                 $booking->id
             );
-            
+
             $cancellation->update([
                 'status' => 'refunded',
                 'refund_method' => 'wallet',
@@ -157,7 +179,7 @@ class CancellationController extends Controller
             // Try to refund to original payment method
             try {
                 $this->refundToOriginalPayment($originalPayment, $cancellation->refund_amount);
-                
+
                 $cancellation->update([
                     'status' => 'refunded',
                     'refund_method' => 'original',
@@ -172,12 +194,12 @@ class CancellationController extends Controller
                     "Refund for cancelled booking #{$booking->code} (original refund failed)",
                     $booking->id
                 );
-                
+
                 $cancellation->update([
                     'status' => 'refunded',
                     'refund_method' => 'wallet',
                     'processed_at' => now(),
-                    'refund_notes' => 'Original payment refund failed: ' . $e->getMessage(),
+                    'refund_notes' => 'Original payment refund failed: '.$e->getMessage(),
                 ]);
             }
         }
@@ -189,18 +211,10 @@ class CancellationController extends Controller
     protected function refundToOriginalPayment($payment, $amount)
     {
         $provider = $payment->paymentMethod?->provider;
-        
+
         switch ($provider) {
-            case 'stripe':
-                \Stripe\Stripe::setApiKey(config('services.stripe.secret'));
-                \Stripe\Refund::create([
-                    'payment_intent' => $payment->provider_reference,
-                    'amount' => $amount * 100,
-                ]);
-                break;
-                
             case 'razorpay':
-                $api = new \Razorpay\Api\Api(
+                $api = new Api(
                     config('services.razorpay.key'),
                     config('services.razorpay.secret')
                 );
@@ -208,11 +222,11 @@ class CancellationController extends Controller
                     'amount' => $amount * 100,
                 ]);
                 break;
-                
+
             default:
                 throw new \Exception('Refund not supported for this payment method');
         }
-        
+
         $payment->processRefund($amount, Auth::id(), 'Booking cancellation refund');
     }
 
@@ -226,7 +240,7 @@ class CancellationController extends Controller
                 $q->where('user_id', Auth::id());
             })
             ->findOrFail($cancellationId);
-        
+
         return view('frontend.cancellation.details', compact('cancellation'));
     }
 
@@ -238,7 +252,7 @@ class CancellationController extends Controller
         $policy = CancellationPolicy::whereHas('rooms', function ($q) use ($roomId) {
             $q->where('id', $roomId);
         })->first() ?? CancellationPolicy::getDefault();
-        
+
         return response()->json([
             'policy' => $policy,
             'summary' => $policy ? $policy->getSummary() : null,
@@ -253,7 +267,7 @@ class CancellationController extends Controller
         $policies = CancellationPolicy::active()
             ->orderBy('name')
             ->get();
-        
+
         return view('frontend.cancellation.policies', compact('policies'));
     }
 }

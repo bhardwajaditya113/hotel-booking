@@ -1,6 +1,8 @@
 <?php
+
 namespace App\Models;
 
+use App\Support\MediaUrl;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -8,6 +10,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Property extends Model
 {
     use HasFactory, SoftDeletes;
+
     protected $guarded = [];
 
     protected $casts = [
@@ -44,7 +47,9 @@ class Property extends Model
 
     public function activeRooms()
     {
-        return $this->hasMany(Room::class)->where('status', 'Active');
+        return $this->hasMany(Room::class)->where(function ($q) {
+            $q->where('status', 'Active')->orWhere('status', 1);
+        });
     }
 
     public function bookings()
@@ -97,13 +102,21 @@ class Property extends Model
         return $query->where('city', 'like', "%{$city}%");
     }
 
+    /**
+     * Approximate radius filter (bounding box) — works on SQLite + MySQL without trig extensions.
+     */
     public function scopeNearLocation($query, $latitude, $longitude, $radiusKm = 10)
     {
-        // Haversine formula for distance calculation
-        return $query->selectRaw(
-            "*, (6371 * acos(cos(radians(?)) * cos(radians(latitude)) * cos(radians(longitude) - radians(?)) + sin(radians(?)) * sin(radians(latitude)))) AS distance",
-            [$latitude, $longitude, $latitude]
-        )->having('distance', '<=', $radiusKm)->orderBy('distance');
+        $lat = (float) $latitude;
+        $lng = (float) $longitude;
+        $r = max(1.0, (float) $radiusKm);
+        $latDelta = $r / 111.0;
+        $lngDelta = $r / max(111.0 * cos(deg2rad(abs($lat))), 0.08);
+
+        return $query->whereNotNull('latitude')
+            ->whereNotNull('longitude')
+            ->whereBetween('latitude', [$lat - $latDelta, $lat + $latDelta])
+            ->whereBetween('longitude', [$lng - $lngDelta, $lng + $lngDelta]);
     }
 
     // ==========================================
@@ -132,20 +145,22 @@ class Property extends Model
             $this->city,
             $this->state,
             $this->zipcode,
-            $this->country
+            $this->country,
         ]);
+
         return implode(', ', $parts);
     }
 
     public function getCoverImageUrlAttribute()
     {
         if ($this->cover_image) {
-            return asset('upload/properties/' . $this->cover_image);
+            return MediaUrl::resolve($this->cover_image, 'upload/properties');
         }
         if ($this->images && count($this->images) > 0) {
-            return asset('upload/properties/' . $this->images[0]);
+            return MediaUrl::resolve($this->images[0], 'upload/properties');
         }
-        return asset('upload/no_image.jpg');
+
+        return MediaUrl::resolve(null);
     }
 
     public function incrementViewCount()
@@ -158,7 +173,26 @@ class Property extends Model
         $reviews = $this->reviews;
         $this->update([
             'average_rating' => $reviews->avg('rating_overall') ?? 0,
-            'total_reviews' => $reviews->count()
+            'total_reviews' => $reviews->count(),
         ]);
+    }
+
+    /**
+     * Map stored cancellation text back to preset keys for the listing form.
+     */
+    public function inferCancellationPreset(): string
+    {
+        $text = trim((string) ($this->cancellation_policy_text ?? ''));
+        if ($text === '') {
+            return 'moderate';
+        }
+
+        foreach (['flexible', 'moderate', 'firm'] as $key) {
+            if ($text === __('frontend.host_listing.cancellation_presets.'.$key)) {
+                return $key;
+            }
+        }
+
+        return 'custom';
     }
 }

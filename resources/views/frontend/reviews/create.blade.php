@@ -9,13 +9,13 @@
                 <i class="fa-solid fa-arrow-left mr-2"></i> Back to Bookings
             </a>
             <h1 class="text-3xl font-bold">Write a Review</h1>
-            <p class="text-gray-600 mt-2">Share your experience at {{ $booking->room->room_name ?? 'our hotel' }}</p>
+            <p class="text-gray-600 mt-2">{{ __('site.reviews.experience_at', ['place' => $booking->room->room_name ?? __('site.reviews.experience_fallback')]) }}</p>
         </div>
 
         <!-- Booking Summary -->
         <div class="bg-gray-50 rounded-xl p-6 mb-8">
             <div class="flex items-center">
-                <img src="{{ asset($booking->room->image ?? 'frontend/img/placeholder.jpg') }}" 
+                <img src="{{ $booking->room->image_url }}" 
                      alt="{{ $booking->room->room_name }}" 
                      class="w-24 h-24 rounded-lg object-cover">
                 <div class="ml-4">

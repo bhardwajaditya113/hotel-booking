@@ -1,7 +1,18 @@
 <?php
 
+use App\Providers\AppServiceProvider;
+use App\Providers\AuthServiceProvider;
+use App\Providers\BroadcastServiceProvider;
+use App\Providers\EventServiceProvider;
+use App\Providers\PortalSyncServiceProvider;
+use App\Providers\RouteServiceProvider;
 use Illuminate\Support\Facades\Facade;
 use Illuminate\Support\ServiceProvider;
+use Intervention\Image\Facades\Image;
+use Intervention\Image\ImageServiceProvider;
+use Maatwebsite\Excel\ExcelServiceProvider;
+use Maatwebsite\Excel\Facades\Excel;
+use Spatie\Permission\PermissionServiceProvider;
 
 return [
 
@@ -16,7 +27,7 @@ return [
     |
     */
 
-    'name' => env('APP_NAME', 'Laravel'),
+    'name' => env('APP_NAME', 'Elapse'),
 
     /*
     |--------------------------------------------------------------------------
@@ -58,6 +69,40 @@ return [
     'url' => env('APP_URL', 'http://localhost'),
 
     'asset_url' => env('ASSET_URL'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Default admin account
+    |--------------------------------------------------------------------------
+    |
+    | Used by AdminUserSeeder, UsersTableSeeder, and `php artisan admin:create-user`.
+    | Override with ADMIN_EMAIL, ADMIN_NAME, and ADMIN_PASSWORD in your .env file
+    | (default password when unset is `111`; see `admin_password` below).
+    |
+    */
+
+    /** Empty ADMIN_EMAIL= in .env must not override the default (env() would return ''). */
+    'admin_email' => trim((string) env('ADMIN_EMAIL')) ?: 'admin@gmail.com',
+
+    'admin_name' => trim((string) env('ADMIN_NAME')) ?: 'Admin',
+
+    /** Plain password for AdminUserSeeder and `admin:create-user`. Empty ADMIN_PASSWORD= falls back to 111. */
+    'admin_password' => trim((string) env('ADMIN_PASSWORD')) ?: '111',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Ensure admin user exists on each web worker boot
+    |--------------------------------------------------------------------------
+    |
+    | When true, the first HTTP request handled by each PHP worker runs
+    | AdminUserSeeder::syncAdmin() once (idempotent). Enable this only if your
+    | database is recreated often (e.g. ephemeral containers) and you cannot
+    | use a persistent volume or a deploy hook. Normally leave this false: the
+    | admin row is already permanent in the users table once created.
+    |
+    */
+
+    'ensure_admin_on_boot' => (bool) env('ENSURE_ADMIN_ON_BOOT', false),
 
     /*
     |--------------------------------------------------------------------------
@@ -159,17 +204,18 @@ return [
         /*
          * Package Service Providers...
          */
-        Intervention\Image\ImageServiceProvider::class,
-        Spatie\Permission\PermissionServiceProvider::class,
-        Maatwebsite\Excel\ExcelServiceProvider::class,
+        ImageServiceProvider::class,
+        PermissionServiceProvider::class,
+        ExcelServiceProvider::class,
         /*
          * Application Service Providers...
          */
-        App\Providers\AppServiceProvider::class,
-        App\Providers\AuthServiceProvider::class,
-        // App\Providers\BroadcastServiceProvider::class,
-        App\Providers\EventServiceProvider::class,
-        App\Providers\RouteServiceProvider::class,
+        AppServiceProvider::class,
+        AuthServiceProvider::class,
+        BroadcastServiceProvider::class,
+        EventServiceProvider::class,
+        PortalSyncServiceProvider::class,
+        RouteServiceProvider::class,
     ])->toArray(),
 
     /*
@@ -185,8 +231,8 @@ return [
 
     'aliases' => Facade::defaultAliases()->merge([
         // 'Example' => App\Facades\Example::class,
-        'Image' => Intervention\Image\Facades\Image::class,
-        'Excel' => Maatwebsite\Excel\Facades\Excel::class,
+        'Image' => Image::class,
+        'Excel' => Excel::class,
     ])->toArray(),
 
 ];

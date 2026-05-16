@@ -2,15 +2,14 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\Booking;
-use App\Models\User;
-use App\Models\Room;
 use App\Models\Property;
+use App\Models\Room;
 use App\Models\RoomBookedDate;
+use App\Models\User;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Seeder;
 
 class BookingSeeder extends Seeder
 {
@@ -19,30 +18,38 @@ class BookingSeeder extends Seeder
      */
     public function run(): void
     {
-        // Get or create test users
-        $user1 = User::where('email', 'user@hotel.com')->first();
-        if (!$user1) {
-            $user1 = User::create([
-                'name' => 'Test User',
-                'email' => 'user@hotel.com',
-                'password' => bcrypt('111'),
-                'role' => 'user',
-                'phone' => '1234567890',
+        // Guests to attribute synthetic bookings (spread across accounts for QA)
+        $bookingGuests = User::whereIn('email', [
+            'user@hotel.com',
+            'demo.guest@elapse.test',
+            'user@gmail.com',
+        ])->get();
+
+        if ($bookingGuests->isEmpty()) {
+            $bookingGuests = collect([
+                User::create([
+                    'name' => 'Test User',
+                    'email' => 'user@hotel.com',
+                    'password' => '111',
+                    'role' => 'user',
+                    'phone' => '1234567890',
+                ]),
             ]);
         }
 
         // Get properties and rooms
         $properties = Property::with('activeRooms')->get();
-        
+
         if ($properties->isEmpty()) {
             $this->command->warn('No properties found. Please run PropertySeeder first.');
+
             return;
         }
 
         $bookingStatuses = [
             ['payment_status' => 1, 'status' => 1, 'payment_method' => 'Razorpay'], // Paid and Complete
             ['payment_status' => 0, 'status' => 0, 'payment_method' => 'Razorpay'], // Pending Payment
-            ['payment_status' => 1, 'status' => 1, 'payment_method' => 'Stripe'], // Paid with Stripe
+            ['payment_status' => 1, 'status' => 1, 'payment_method' => 'Razorpay'], // Paid online
         ];
 
         $bookingsCreated = 0;
@@ -59,13 +66,15 @@ class BookingSeeder extends Seeder
 
             for ($i = 0; $i < $numBookings; $i++) {
                 // Random dates in the future
-                $checkIn = Carbon::now()->addDays(rand(7, 60));
-                $checkOut = $checkIn->copy()->addDays(rand(1, 7));
+                $checkIn = Carbon::now()->addDays(rand(7, 60))->startOfDay();
+                $checkOut = $checkIn->copy()->addDays(rand(1, 7))->startOfDay();
                 $nights = $checkIn->diffInDays($checkOut);
+
+                $rangeEnd = $checkOut->copy()->subDay();
 
                 // Check if room is already booked for these dates
                 $existingBooking = RoomBookedDate::where('room_id', $room->id)
-                    ->whereBetween('book_date', [$checkIn->format('Y-m-d'), $checkOut->subDay()->format('Y-m-d')])
+                    ->whereBetween('book_date', [$checkIn->format('Y-m-d'), $rangeEnd->format('Y-m-d')])
                     ->exists();
 
                 if ($existingBooking) {
@@ -81,10 +90,12 @@ class BookingSeeder extends Seeder
 
                 $bookingStatus = $bookingStatuses[array_rand($bookingStatuses)];
 
+                $guestUser = $bookingGuests->random();
+
                 $booking = Booking::create([
                     'rooms_id' => $room->id,
                     'property_id' => $property->id,
-                    'user_id' => $user1->id,
+                    'user_id' => $guestUser->id,
                     'check_in' => $checkIn->format('Y-m-d'),
                     'check_out' => $checkOut->format('Y-m-d'),
                     'persion' => $guests,
@@ -97,14 +108,14 @@ class BookingSeeder extends Seeder
                     'payment_method' => $bookingStatus['payment_method'],
                     'payment_status' => $bookingStatus['payment_status'],
                     'status' => $bookingStatus['status'],
-                    'transation_id' => $bookingStatus['payment_status'] == 1 ? 'txn_' . strtoupper(uniqid()) : '',
-                    'name' => $user1->name,
-                    'email' => $user1->email,
-                    'phone' => $user1->phone ?? '1234567890',
+                    'transation_id' => $bookingStatus['payment_status'] == 1 ? 'txn_'.strtoupper(uniqid()) : '',
+                    'name' => $guestUser->name,
+                    'email' => $guestUser->email,
+                    'phone' => $guestUser->phone ?? '1234567890',
                     'country' => 'India',
                     'state' => 'Test State',
                     'zip_code' => rand(100000, 999999),
-                    'address' => 'Test Address ' . rand(1, 100),
+                    'address' => 'Test Address '.rand(1, 100),
                     'code' => rand(100000000, 999999999),
                     'created_at' => Carbon::now()->subDays(rand(0, 30)),
                 ]);
@@ -112,9 +123,9 @@ class BookingSeeder extends Seeder
                 // Create booked dates
                 $sdate = $checkIn->format('Y-m-d');
                 $edate = $checkOut->format('Y-m-d');
-                $eldate = Carbon::create($edate)->subDay();
+                $eldate = $rangeEnd;
                 $d_period = CarbonPeriod::create($sdate, $eldate);
-                
+
                 foreach ($d_period as $period) {
                     RoomBookedDate::create([
                         'booking_id' => $booking->id,
@@ -130,4 +141,3 @@ class BookingSeeder extends Seeder
         $this->command->info("Created {$bookingsCreated} test bookings!");
     }
 }
-

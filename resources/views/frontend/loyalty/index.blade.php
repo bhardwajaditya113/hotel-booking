@@ -1,17 +1,19 @@
-@extends('frontend.main_master')
+@extends('frontend.dashboard.account_master')
 
-@section('main')
-<div class="container mx-auto px-4 py-8">
+@section('account_title', __('frontend.account.title_loyalty'))
+
+@section('account_content')
+<div class="w-full">
     <!-- Loyalty Header -->
-    <div class="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-8 text-white mb-8">
+    <div class="nx-tw-hero p-8 shadow-sm mb-8">
         <div class="flex flex-wrap items-center justify-between">
             <div>
                 <h1 class="text-3xl font-bold mb-2">Loyalty Program</h1>
-                <p class="text-blue-100">Earn points on every booking and unlock exclusive rewards</p>
+                <p class="nx-tw-hero-sub">Earn points on every booking and unlock exclusive rewards</p>
             </div>
             <div class="text-right mt-4 lg:mt-0">
                 <div class="text-4xl font-bold">{{ number_format($loyalty->current_points) }}</div>
-                <div class="text-blue-100">Available Points</div>
+                <div class="nx-tw-hero-sub">Available Points</div>
             </div>
         </div>
     </div>
@@ -76,7 +78,11 @@
                         <span>{{ $loyalty->tier->redemption_rate ?? 100 }} points = ₹1</span>
                     </li>
                     @if($loyalty->tier->benefits ?? false)
-                        @foreach(json_decode($loyalty->tier->benefits, true) ?? [] as $benefit)
+                        @php
+                            $benefitsRaw = $loyalty->tier->benefits;
+                            $benefitList = is_array($benefitsRaw) ? $benefitsRaw : (json_decode($benefitsRaw, true) ?: []);
+                        @endphp
+                        @foreach($benefitList as $benefit)
                         <li class="flex items-center">
                             <i class="fa-solid fa-check-circle text-green-500 mr-3"></i>
                             <span>{{ $benefit }}</span>
@@ -221,6 +227,9 @@
     </div>
 </div>
 
+@endsection
+
+@push('scripts')
 <script>
 function copyReferralCode() {
     const code = document.getElementById('referralCode');
@@ -236,4 +245,4 @@ function copyReferralCode() {
     setTimeout(() => toast.remove(), 2000);
 }
 </script>
-@endsection
+@endpush

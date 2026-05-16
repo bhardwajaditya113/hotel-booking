@@ -1,5 +1,6 @@
 @extends('admin.admin_dashboard')
-@section('admin') 
+@section('admin')
+@php use App\Support\Currency; @endphp
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
 
 <div class="page-content">
@@ -121,14 +122,14 @@
                     </thead>
                     <tbody>
                         <tr>
-                            <td>{{ $editData->room->type->name }}</td>
+                            <td>{{ $editData->stay_label }}</td>
                             <td>{{ $editData->number_of_rooms }}</td>
-                            <td>${{ $editData->actual_price }}</td>
+                            <td>{{ Currency::inr($editData->actual_price) }}</td>
                             <td>
-                                <span class="badge bg-primary">{{ $editData->check_in }}</span>  /<br> 
+                                <span class="badge bg-primary">{{ $editData->check_in }}</span>  /<br>
                                 <span class="badge bg-warning text-dark">{{ $editData->check_out }}</span></td>
                             <td>{{ $editData->total_night }}</td>
-                            <td>${{ $editData->actual_price *  $editData->number_of_rooms }}</td>
+                            <td>{{ Currency::inr((float) $editData->actual_price * (int) $editData->number_of_rooms) }}</td>
 
                         </tr>
                     </tbody> 
@@ -140,47 +141,53 @@
                     <table class="table test_table" style="float: right" border="none">
                         <tr>
                             <td>Subtotal</td>
-                            <td>${{ $editData->subtotal }}</td>
+                            <td>{{ Currency::inr($editData->subtotal) }}</td>
                         </tr>
                         <tr>
                             <td>Discount</td>
-                            <td>${{ $editData->discount }}</td>
+                            <td>{{ Currency::inr($editData->discount) }}</td>
                         </tr>
                         <tr>
-                            <td>Grand Total</td>
-                            <td>${{ $editData->total_price }}</td>
+                            <td>Grand total</td>
+                            <td>{{ Currency::inr($editData->total_price) }}</td>
                         </tr>
                     </table>
 
                 </div>
  
 
+    @if ($editData->rooms_id)
     <div style="clear: both"></div>
     <div style="margin-top: 40px; margin-bottom:20px;">
-    <a href="javascript::void(0)" class="btn btn-primary assign_room"> Assign Room</a>
+    <a href="javascript:void(0)" class="btn btn-primary assign_room"> Assign room</a>
     </div>
     @php
         $assign_rooms = App\Models\BookingRoomList::with('room_number')->where('booking_id',$editData->id)->get();
     @endphp
 
-    @if (count($assign_rooms) > 0) 
+    @if (count($assign_rooms) > 0)
     <table class="table table-bordered">
         <tr>
             <th>Room Number</th>
             <th>Action</th>
         </tr>
-        @foreach ($assign_rooms as $assign_room)  
+        @foreach ($assign_rooms as $assign_room)
         <tr>
             <td>{{ $assign_room->room_number->room_no }}</td>
             <td>
                 <a href="{{ route('assign_room_delete',$assign_room->id) }}" id="delete">Delete</a>
             </td>
         </tr>
-        @endforeach 
+        @endforeach
     </table>
     @else
     <div class="alert alert-danger text-center">
-        Not Found Assign Room
+        No room numbers assigned yet
+    </div>
+    @endif
+    @else
+    <div class="alert alert-info text-center mt-3">
+        This booking is not tied to a legacy hotel room record. Manage it from the booking details or property flow; room assignment is only available for classic room bookings.
     </div>
     @endif
 
@@ -239,6 +246,7 @@
                 </div>
             </div>
                <div class="card-body">
+                @if ($editData->rooms_id)
                 <form action="{{ route('update.booking', $editData->id) }}" method="POST">
                     @csrf
 
@@ -272,7 +280,10 @@
 
                     </div>
                 </form>
-                 
+                @else
+                <p class="text-secondary small mb-0">Check-in, check-out, and room count for this booking cannot be edited here because it is not linked to a hotel room inventory record.</p>
+                @endif
+
                </div>
               
            </div>
@@ -291,11 +302,11 @@
             </div>
     <div class="card-body"> 
     <ul class="list-group list-group-flush">
-        <li class="list-group-item d-flex bg-transparent justify-content-between align-items-center border-top">Name <span class="badge bg-success rounded-pill">{{ $editData['user']['name'] }}</span>
+        <li class="list-group-item d-flex bg-transparent justify-content-between align-items-center border-top">Name <span class="badge bg-success rounded-pill">{{ $editData->user?->name ?? $editData->name }}</span>
         </li>
-        <li class="list-group-item d-flex bg-transparent justify-content-between align-items-center">Email <span class="badge bg-danger rounded-pill">{{ $editData['user']['email'] }} </span>
+        <li class="list-group-item d-flex bg-transparent justify-content-between align-items-center">Email <span class="badge bg-danger rounded-pill">{{ $editData->user?->email ?? $editData->email }} </span>
         </li>
-        <li class="list-group-item d-flex bg-transparent justify-content-between align-items-center">Phone <span class="badge bg-primary rounded-pill">{{ $editData['user']['phone'] }}</span>
+        <li class="list-group-item d-flex bg-transparent justify-content-between align-items-center">Phone <span class="badge bg-primary rounded-pill">{{ $editData->user?->phone ?? $editData->phone }}</span>
         </li>
         <li class="list-group-item d-flex bg-transparent justify-content-between align-items-center">Country <span class="badge bg-warning text-dark rounded-pill">{{ $editData->country }}</span>
         </li>
@@ -344,6 +355,7 @@
 
 <script>
      $(document).ready(function (){
+        @if ($editData->rooms_id)
         getAvaility();
 
         $(".assign_room").on('click', function(){
@@ -356,12 +368,13 @@
             });
             return false;
         });
-
-
-
+        @endif
      });
 
     function getAvaility(){
+        @if (! $editData->rooms_id)
+        return;
+        @endif
         var check_in = $('#check_in').val();
         var check_out = $('#check_out').val();
         var room_id = "{{ $editData->rooms_id }}";
@@ -373,7 +386,7 @@
             $(".availability").text(data['available_room']);
             $("#available_room").val(data['available_room']);
          }
-      }); 
+      });
 
     }
    

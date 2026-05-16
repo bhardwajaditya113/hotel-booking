@@ -11,14 +11,17 @@ class AdminRole
     /**
      * Handle an incoming request.
      *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * @param  Closure(Request): (Response)  $next
      */
     public function handle(Request $request, Closure $next, $role): Response
     {
-        if($request->user()->role !== $role){
-            return redirect('dashboard');            
+        $actual = strtolower(trim((string) $request->user()->role));
+        $expected = strtolower(trim((string) $role));
+
+        if ($actual !== $expected) {
+            return redirect()->route('dashboard');
         }
+
         return $next($request);
     }
 }
- 

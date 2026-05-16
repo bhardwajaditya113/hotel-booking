@@ -2,12 +2,12 @@
 @section('main')
 
 <!-- Page Header -->
-<section class="page-header py-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+<section class="page-header py-4">
     <div class="container">
         <div class="row">
             <div class="col-12">
-                <h1 class="text-white fw-bold mb-2">Search Properties</h1>
-                <p class="text-white mb-0" style="opacity: 0.9;">Find your perfect stay</p>
+                <h1 class="fw-bold mb-2">{{ __('frontend.search.prop_page_title') }}</h1>
+                <p class="mb-0">{{ __('frontend.search.prop_page_sub') }}</p>
             </div>
         </div>
     </div>
@@ -19,7 +19,7 @@
         <div class="col-lg-3 col-md-4">
             <div class="bg-white rounded-4 shadow-sm p-4 mb-4 sticky-top" style="top: 20px;">
                 <h4 class="fw-bold mb-4">
-                    <i class='bx bx-filter-alt me-2 text-primary'></i>Filters
+                    <i class='bx bx-filter-alt me-2 text-primary'></i>{{ __('frontend.search.filters') }}
                 </h4>
                 
                 <form method="GET" action="{{ route('search.results') }}" id="filter-form">
@@ -27,19 +27,19 @@
                     
                     <!-- Listing Type -->
                     <div class="mb-4">
-                        <label class="form-label fw-bold mb-2">Listing Type</label>
+                        <label class="form-label fw-bold mb-2">{{ __('frontend.search.prop_listing_type') }}</label>
                         <select name="listing_type" class="form-select">
-                            <option value="">All Types</option>
-                            <option value="hotel" {{ request('listing_type') == 'hotel' ? 'selected' : '' }}>Hotels</option>
-                            <option value="unique_stay" {{ request('listing_type') == 'unique_stay' ? 'selected' : '' }}>Unique Stays</option>
+                            <option value="">{{ __('frontend.search.prop_all_types') }}</option>
+                            <option value="hotel" {{ request('listing_type') == 'hotel' ? 'selected' : '' }}>{{ __('frontend.search.prop_hotels') }}</option>
+                            <option value="unique_stay" {{ request('listing_type') == 'unique_stay' ? 'selected' : '' }}>{{ __('frontend.search.prop_unique_stays') }}</option>
                         </select>
                     </div>
 
                     <!-- Property Type -->
                     <div class="mb-4">
-                        <label class="form-label fw-bold mb-2">Property Type</label>
+                        <label class="form-label fw-bold mb-2">{{ __('frontend.search.property_type') }}</label>
                         <select name="property_type" class="form-select">
-                            <option value="">All Types</option>
+                            <option value="">{{ __('frontend.search.prop_all_types') }}</option>
                             @foreach(\App\Models\PropertyType::all() as $type)
                             <option value="{{ $type->id }}" {{ request('property_type') == $type->id ? 'selected' : '' }}>
                                 {{ $type->name }}
@@ -48,38 +48,39 @@
                         </select>
                     </div>
 
-                    <!-- City -->
+                    <!-- City + geo search -->
                     <div class="mb-4">
-                        <label class="form-label fw-bold mb-2">
-                            <i class='bx bx-map me-1'></i>City
-                        </label>
-                        <input type="text" name="city" value="{{ request('city') }}" 
-                               class="form-control" placeholder="Enter city">
+                        <x-location-picker
+                            :label="__('frontend.search.location')"
+                            :placeholder="__('site.home.where_placeholder')"
+                            city-name="city"
+                            input-class="form-control"
+                        />
                     </div>
 
                     <!-- Price Range -->
                     <div class="mb-4">
-                        <label class="form-label fw-bold mb-2">Price Range (per night)</label>
+                        <label class="form-label fw-bold mb-2">{{ __('frontend.search.prop_price_per_night') }}</label>
                         <div class="row g-2">
                             <div class="col-6">
                                 <input type="number" name="min_price" value="{{ request('min_price') }}" 
-                                       class="form-control" placeholder="Min">
+                                       class="form-control" placeholder="{{ __('frontend.search.min') }}">
                             </div>
                             <div class="col-6">
                                 <input type="number" name="max_price" value="{{ request('max_price') }}" 
-                                       class="form-control" placeholder="Max">
+                                       class="form-control" placeholder="{{ __('frontend.search.max') }}">
                             </div>
                         </div>
                     </div>
 
                     <!-- Rating -->
                     <div class="mb-4">
-                        <label class="form-label fw-bold mb-2">Minimum Rating</label>
+                        <label class="form-label fw-bold mb-2">{{ __('frontend.search.prop_min_rating') }}</label>
                         <select name="min_rating" class="form-select">
-                            <option value="">Any Rating</option>
-                            <option value="4" {{ request('min_rating') == '4' ? 'selected' : '' }}>4+ Stars</option>
-                            <option value="4.5" {{ request('min_rating') == '4.5' ? 'selected' : '' }}>4.5+ Stars</option>
-                            <option value="5" {{ request('min_rating') == '5' ? 'selected' : '' }}>5 Stars</option>
+                            <option value="">{{ __('frontend.search.prop_any_rating') }}</option>
+                            <option value="4" {{ request('min_rating') == '4' ? 'selected' : '' }}>{{ __('frontend.search.prop_rating_4') }}</option>
+                            <option value="4.5" {{ request('min_rating') == '4.5' ? 'selected' : '' }}>{{ __('frontend.search.prop_rating_45') }}</option>
+                            <option value="5" {{ request('min_rating') == '5' ? 'selected' : '' }}>{{ __('frontend.search.prop_rating_5') }}</option>
                         </select>
                     </div>
 
@@ -89,7 +90,7 @@
                             <input class="form-check-input" type="checkbox" name="instant_book" value="1" 
                                    id="instant_book" {{ request('instant_book') ? 'checked' : '' }}>
                             <label class="form-check-label" for="instant_book">
-                                Instant Book Only
+                                {{ __('frontend.search.prop_instant_book_only') }}
                             </label>
                         </div>
                     </div>
@@ -100,17 +101,17 @@
                             <input class="form-check-input" type="checkbox" name="verified_only" value="1" 
                                    id="verified_only" {{ request('verified_only') ? 'checked' : '' }}>
                             <label class="form-check-label" for="verified_only">
-                                Verified Properties Only
+                                {{ __('frontend.search.prop_verified_only') }}
                             </label>
                         </div>
                     </div>
 
                     <button type="submit" class="btn btn-primary w-100 rounded-pill fw-bold mb-2">
-                        <i class='bx bx-check me-2'></i>Apply Filters
+                        <i class='bx bx-check me-2'></i>{{ __('frontend.search.apply_filters') }}
                     </button>
                     <a href="{{ route('search.results', ['search_mode' => 'properties']) }}" 
                        class="btn btn-outline-secondary w-100 rounded-pill">
-                        <i class='bx bx-x me-2'></i>Clear Filters
+                        <i class='bx bx-x me-2'></i>{{ __('frontend.search.prop_clear_filters') }}
                     </a>
                 </form>
             </div>
@@ -120,18 +121,21 @@
         <div class="col-lg-9 col-md-8">
             <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
                 <div>
-                    <h2 class="fw-bold mb-1">Properties</h2>
+                    <h2 class="fw-bold mb-1">{{ __('frontend.search.prop_section_title') }}</h2>
                     <p class="text-muted mb-0">
-                        <span class="fw-bold text-primary">{{ $properties->total() }}</span> properties found
+                        <span class="fw-bold text-primary">{{ $properties->total() }}</span> {{ __('frontend.search.prop_found_suffix') }}
                     </p>
                 </div>
-                <div>
+                <div class="d-flex flex-wrap align-items-center gap-2">
+                    <a href="{{ route('search.map', array_filter(['city' => request('city'), 'latitude' => request('latitude'), 'longitude' => request('longitude'), 'radius' => request('radius'), 'listing_type' => request('listing_type')])) }}" class="btn btn-outline-primary rounded-pill btn-sm">
+                        <i class='bx bx-map-alt me-1'></i>{{ __('frontend.search.prop_map') }}
+                    </a>
                     <select name="sort" class="form-select" onchange="updateSort(this.value)" style="min-width: 200px;">
-                        <option value="">Sort By</option>
-                        <option value="price_low" {{ request('sort') == 'price_low' ? 'selected' : '' }}>Price: Low to High</option>
-                        <option value="price_high" {{ request('sort') == 'price_high' ? 'selected' : '' }}>Price: High to Low</option>
-                        <option value="rating" {{ request('sort') == 'rating' ? 'selected' : '' }}>Highest Rated</option>
-                        <option value="reviews" {{ request('sort') == 'reviews' ? 'selected' : '' }}>Most Reviews</option>
+                        <option value="">{{ __('frontend.search.prop_sort_by') }}</option>
+                        <option value="price_low" {{ request('sort') == 'price_low' ? 'selected' : '' }}>{{ __('frontend.search.prop_sort_price_low') }}</option>
+                        <option value="price_high" {{ request('sort') == 'price_high' ? 'selected' : '' }}>{{ __('frontend.search.prop_sort_price_high') }}</option>
+                        <option value="rating" {{ request('sort') == 'rating' ? 'selected' : '' }}>{{ __('frontend.search.prop_sort_rating') }}</option>
+                        <option value="reviews" {{ request('sort') == 'reviews' ? 'selected' : '' }}>{{ __('frontend.search.prop_sort_reviews') }}</option>
                     </select>
                 </div>
             </div>
@@ -149,17 +153,17 @@
                                          class="w-100 h-100" style="object-fit: cover;">
                                     @if($property->isVerified())
                                     <span class="badge bg-success position-absolute top-0 end-0 m-3">
-                                        <i class='bx bx-check-circle me-1'></i>Verified
+                                        <i class='bx bx-check-circle me-1'></i>{{ __('frontend.search.prop_badge_verified') }}
                                     </span>
                                     @endif
                                     @if($property->host && $property->host->hostProfile && $property->host->hostProfile->is_superhost)
                                     <span class="badge position-absolute top-0 start-0 m-3" style="background-color: #6f42c1;">
-                                        ⭐ Superhost
+                                        ⭐ {{ __('frontend.search.prop_badge_superhost') }}
                                     </span>
                                     @endif
                                     @if($property->is_featured)
                                     <span class="badge bg-warning position-absolute bottom-0 start-0 m-3">
-                                        <i class='bx bx-star me-1'></i>Featured
+                                        <i class='bx bx-star me-1'></i>{{ __('frontend.search.prop_badge_featured') }}
                                     </span>
                                     @endif
                                 </div>
@@ -181,7 +185,7 @@
                                             </p>
                                             <div class="d-flex flex-wrap gap-2 mb-2">
                                                 <span class="badge {{ $property->listing_type === 'hotel' ? 'bg-primary' : 'bg-success' }}">
-                                                    {{ $property->listing_type === 'hotel' ? 'Hotel' : 'Unique Stay' }}
+                                                    {{ $property->listing_type === 'hotel' ? __('frontend.search.prop_type_hotel') : __('frontend.search.prop_type_unique') }}
                                                 </span>
                                                 @if($property->type)
                                                 <span class="badge bg-secondary">
@@ -206,7 +210,7 @@
                                     </div>
 
                                     <p class="text-muted mb-3 flex-grow-1" style="line-height: 1.6;">
-                                        {{ \Illuminate\Support\Str::limit($property->description ?? 'Beautiful property in a great location with modern amenities.', 150) }}
+                                        {{ \Illuminate\Support\Str::limit($property->description ?? __('frontend.search.prop_desc_fallback'), 150) }}
                                     </p>
 
                                     <div class="d-flex justify-content-between align-items-center mt-auto pt-3 border-top">
@@ -218,18 +222,18 @@
                                             @if($minPrice > 0)
                                             <div>
                                                 <span class="h4 fw-bold text-primary mb-0">₹{{ number_format($minPrice) }}</span>
-                                                <span class="text-muted">/night</span>
+                                                <span class="text-muted">{{ __('frontend.search.prop_per_night') }}</span>
                                                 @if($maxPrice > $minPrice)
                                                 <span class="text-muted small"> - ₹{{ number_format($maxPrice) }}</span>
                                                 @endif
                                             </div>
                                             @else
-                                            <span class="text-muted">Price on request</span>
+                                            <span class="text-muted">{{ __('frontend.search.prop_price_on_request') }}</span>
                                             @endif
                                         </div>
                                         <a href="{{ route('property.show', $property->id) }}" 
                                            class="btn btn-primary rounded-pill px-4 fw-bold">
-                                            View Details <i class='bx bx-arrow-right ms-1'></i>
+                                            {{ __('frontend.search.prop_view_details') }} <i class='bx bx-arrow-right ms-1'></i>
                                         </a>
                                     </div>
                                 </div>
@@ -247,11 +251,11 @@
             @else
             <div class="bg-white rounded-4 shadow-sm p-5 text-center">
                 <i class='bx bx-building-house text-muted mb-3' style="font-size: 4rem;"></i>
-                <h4 class="fw-bold mb-3">No properties found</h4>
-                <p class="text-muted mb-4">Try adjusting your filters or search criteria</p>
+                <h4 class="fw-bold mb-3">{{ __('frontend.search.prop_no_results_title') }}</h4>
+                <p class="text-muted mb-4">{{ __('frontend.search.prop_no_results_sub') }}</p>
                 <a href="{{ route('search.results', ['search_mode' => 'properties']) }}" 
                    class="btn btn-primary rounded-pill px-4">
-                    <i class='bx bx-refresh me-2'></i>Clear Filters
+                    <i class='bx bx-refresh me-2'></i>{{ __('frontend.search.prop_clear_filters') }}
                 </a>
             </div>
             @endif

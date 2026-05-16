@@ -1,207 +1,182 @@
 @extends('admin.admin_dashboard')
-@section('admin') 
+@section('admin')
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 @php
-  $bookings = App\Models\Booking::latest()->get();
-  $pending = App\Models\Booking::where('status','0')->get();
-  $complete = App\Models\Booking::where('status','1')->get();
-  $totalPrice = App\Models\Booking::sum('total_price');
+    use App\Support\Currency;
+    $fmtWeek = function (?float $pct): string {
+        if ($pct === null) {
+            return 'No comparison data (last week)';
+        }
+        $sign = $pct > 0 ? '+' : '';
 
-  $today = Carbon\Carbon::now()->toDateString();
-  $todayprice = App\Models\Booking::whereDate('created_at',$today)->sum('total_price');
-
-  $allData = App\Models\Booking::orderBy('id','desc')->limit(10)->get();
-
-  // Property Statistics
-  $totalProperties = App\Models\Property::count();
-  $pendingProperties = App\Models\Property::where('verification_status', 'pending')->count();
-  $verifiedProperties = App\Models\Property::where('verification_status', 'verified')->count();
-  $hotelProperties = App\Models\Property::where('listing_type', 'hotel')->count();
-  $uniqueStayProperties = App\Models\Property::where('listing_type', 'unique_stay')->count();
-
-  // Host Statistics
-  $totalHosts = App\Models\HostProfile::count();
-  $pendingHosts = App\Models\HostProfile::where('verification_status', 'pending')->count();
-  $verifiedHosts = App\Models\HostProfile::where('verification_status', 'verified')->count();
-  $superhosts = App\Models\HostProfile::where('is_superhost', true)->count();
-
-  // Review Statistics
-  $totalReviews = App\Models\Review::count();
-  $pendingReviews = App\Models\Review::where('is_approved', false)->count();
-  $approvedReviews = App\Models\Review::where('is_approved', true)->count();
-
+        return $sign . number_format($pct, 1) . '% vs last week';
+    };
 @endphp
 
 <div class="page-content">
-    <div class="row row-cols-1 row-cols-md-2 row-cols-xl-4">
-       <div class="col">
-         <div class="card radius-10 border-start border-0 border-4 border-info">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div>
-                        <p class="mb-0 text-secondary">Total Booking</p>
-                        <h4 class="my-1 text-info">{{ count($bookings) }}</h4>
-                        <p class="mb-0 font-13">Today Sale:  ${{ $todayprice }}</p>
-                    </div>
-                    <div class="widgets-icons-2 rounded-circle bg-gradient-blues text-white ms-auto"><i class='bx bxs-cart'></i>
-                    </div>
-                </div>
-            </div>
-         </div>
-       </div>
-       <div class="col">
-        <div class="card radius-10 border-start border-0 border-4 border-danger">
-           <div class="card-body">
-               <div class="d-flex align-items-center">
-                   <div>
-                       <p class="mb-0 text-secondary">Pening Booking</p>
-                       <h4 class="my-1 text-danger">{{ count($pending) }}</h4>
-                       <p class="mb-0 font-13">+5.4% from last week</p>
-                   </div>
-                   <div class="widgets-icons-2 rounded-circle bg-gradient-burning text-white ms-auto"><i class='bx bxs-wallet'></i>
-                   </div>
-               </div>
-           </div>
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+        <div>
+            <h5 class="mb-0">Dashboard</h5>
+            <p class="text-secondary small mb-0">Figures refresh from your live database. Cards auto-update every 45 seconds.</p>
         </div>
-      </div>
-      <div class="col">
-        <div class="card radius-10 border-start border-0 border-4 border-success">
-           <div class="card-body">
-               <div class="d-flex align-items-center">
-                   <div>
-                       <p class="mb-0 text-secondary">Complete Booking</p>
-                       <h4 class="my-1 text-success">{{ count($complete) }}</h4>
-                       <p class="mb-0 font-13">-4.5% from last week</p>
-                   </div>
-                   <div class="widgets-icons-2 rounded-circle bg-gradient-ohhappiness text-white ms-auto"><i class='bx bxs-bar-chart-alt-2' ></i>
-                   </div>
-               </div>
-           </div>
-        </div>
-      </div>
-      <div class="col">
-        <div class="card radius-10 border-start border-0 border-4 border-warning">
-           <div class="card-body">
-               <div class="d-flex align-items-center">
-                   <div>
-                       <p class="mb-0 text-secondary">Total Price</p>
-                       <h4 class="my-1 text-warning">${{ $totalPrice  }}</h4>
-                       <p class="mb-0 font-13">+8.4% from last week</p>
-                   </div>
-                   <div class="widgets-icons-2 rounded-circle bg-gradient-orange text-white ms-auto"><i class='bx bxs-group'></i>
-                   </div>
-               </div>
-           </div>
-        </div>
-      </div> 
-    </div><!--end row-->
+        <span class="badge bg-secondary-lt text-secondary" id="nx-dashboard-as-of" title="Last stats refresh">Updated: {{ \Carbon\Carbon::parse($stats['generated_at'])->timezone(config('app.timezone'))->format('M j, H:i') }}</span>
+    </div>
 
-    <!-- Property & Host Statistics -->
-    <div class="row row-cols-1 row-cols-md-2 row-cols-xl-4 mt-3">
-       <div class="col">
-         <div class="card radius-10 border-start border-0 border-4 border-primary">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div>
-                        <p class="mb-0 text-secondary">Total Properties</p>
-                        <h4 class="my-1 text-primary">{{ $totalProperties }}</h4>
-                        <p class="mb-0 font-13">Hotels: {{ $hotelProperties }} | Unique: {{ $uniqueStayProperties }}</p>
-                    </div>
-                    <div class="widgets-icons-2 rounded-circle bg-gradient-primary text-white ms-auto"><i class='bx bx-building-house'></i>
-                    </div>
-                </div>
-            </div>
-         </div>
-       </div>
-       <div class="col">
-        <div class="card radius-10 border-start border-0 border-4 border-warning">
-           <div class="card-body">
-               <div class="d-flex align-items-center">
-                   <div>
-                       <p class="mb-0 text-secondary">Pending Verification</p>
-                       <h4 class="my-1 text-warning">{{ $pendingProperties }}</h4>
-                       <p class="mb-0 font-13">Properties awaiting review</p>
-                   </div>
-                   <div class="widgets-icons-2 rounded-circle bg-gradient-warning text-white ms-auto"><i class='bx bx-time-five'></i>
-                   </div>
-               </div>
-           </div>
-        </div>
-      </div>
-      <div class="col">
-        <div class="card radius-10 border-start border-0 border-4 border-success">
-           <div class="card-body">
-               <div class="d-flex align-items-center">
-                   <div>
-                       <p class="mb-0 text-secondary">Verified Properties</p>
-                       <h4 class="my-1 text-success">{{ $verifiedProperties }}</h4>
-                       <p class="mb-0 font-13">Active & verified</p>
-                   </div>
-                   <div class="widgets-icons-2 rounded-circle bg-gradient-success text-white ms-auto"><i class='bx bx-check-circle'></i>
-                   </div>
-               </div>
-           </div>
-        </div>
-      </div>
-      <div class="col">
-        <div class="card radius-10 border-start border-0 border-4 border-info">
-           <div class="card-body">
-               <div class="d-flex align-items-center">
-                   <div>
-                       <p class="mb-0 text-secondary">Total Hosts</p>
-                       <h4 class="my-1 text-info">{{ $totalHosts }}</h4>
-                       <p class="mb-0 font-13">Superhosts: {{ $superhosts }}</p>
-                   </div>
-                   <div class="widgets-icons-2 rounded-circle bg-gradient-info text-white ms-auto"><i class='bx bx-user-circle'></i>
-                   </div>
-               </div>
-           </div>
-        </div>
-      </div> 
-    </div><!--end row-->
-
-    <!-- Quick Actions -->
-    <div class="row mt-3">
-        <div class="col-12">
-            <div class="card radius-10">
-                <div class="card-header">
+    <div class="row row-cols-1 row-cols-md-2 row-cols-xl-4 g-3">
+        <div class="col">
+            <div class="card border-start border-0 border-4 border-info">
+                <div class="card-body">
                     <div class="d-flex align-items-center">
                         <div>
-                            <h6 class="mb-0">Quick Actions</h6>
+                            <p class="mb-0 text-secondary">Total bookings</p>
+                            <h4 class="my-1 text-info" id="nx-stat-total-bookings">{{ $stats['total_bookings'] }}</h4>
+                            <p class="mb-0 font-13">Today: <span id="nx-stat-today-revenue">{{ Currency::inr($stats['today_revenue']) }}</span></p>
                         </div>
+                        <div class="rounded-circle bg-info-lt text-info ms-auto p-3"><i class="bx bxs-cart fs-4"></i></div>
                     </div>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card border-start border-0 border-4 border-danger">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div>
+                            <p class="mb-0 text-secondary">Pending bookings</p>
+                            <h4 class="my-1 text-danger" id="nx-stat-pending-bookings">{{ $stats['pending_bookings'] }}</h4>
+                            <p class="mb-0 font-13" id="nx-stat-pending-trend">{{ $fmtWeek($stats['pending_week_pct']) }}</p>
+                        </div>
+                        <div class="rounded-circle bg-danger-lt text-danger ms-auto p-3"><i class="bx bxs-wallet fs-4"></i></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card border-start border-0 border-4 border-success">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div>
+                            <p class="mb-0 text-secondary">Confirmed / complete</p>
+                            <h4 class="my-1 text-success" id="nx-stat-complete-bookings">{{ $stats['complete_bookings'] }}</h4>
+                            <p class="mb-0 font-13" id="nx-stat-complete-trend">{{ $fmtWeek($stats['complete_week_pct']) }}</p>
+                        </div>
+                        <div class="rounded-circle bg-success-lt text-success ms-auto p-3"><i class="bx bx-line-chart fs-4"></i></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card border-start border-0 border-4 border-warning">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div>
+                            <p class="mb-0 text-secondary">Total revenue (INR)</p>
+                            <h4 class="my-1 text-warning" id="nx-stat-total-revenue">{{ Currency::inr($stats['total_revenue']) }}</h4>
+                            <p class="mb-0 font-13" id="nx-stat-revenue-trend">{{ $fmtWeek($stats['revenue_week_pct']) }}</p>
+                        </div>
+                        <div class="rounded-circle bg-warning-lt text-warning ms-auto p-3"><i class="bx bx-rupee fs-4"></i></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row row-cols-1 row-cols-md-2 row-cols-xl-4 g-3 mt-1">
+        <div class="col">
+            <div class="card border-start border-0 border-4 border-primary">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div>
+                            <p class="mb-0 text-secondary">Total properties</p>
+                            <h4 class="my-1 text-primary" id="nx-stat-total-properties">{{ $stats['total_properties'] }}</h4>
+                            <p class="mb-0 font-13">Hotels: <span id="nx-stat-hotel-properties">{{ $stats['hotel_properties'] }}</span> | Unique: <span id="nx-stat-unique-properties">{{ $stats['unique_stay_properties'] }}</span></p>
+                        </div>
+                        <div class="rounded-circle bg-primary-lt text-primary ms-auto p-3"><i class="bx bx-building-house fs-4"></i></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card border-start border-0 border-4 border-warning">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div>
+                            <p class="mb-0 text-secondary">Pending verification</p>
+                            <h4 class="my-1 text-warning" id="nx-stat-pending-properties">{{ $stats['pending_properties'] }}</h4>
+                            <p class="mb-0 font-13">Properties awaiting review</p>
+                        </div>
+                        <div class="rounded-circle bg-warning-lt text-warning ms-auto p-3"><i class="bx bx-time-five fs-4"></i></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card border-start border-0 border-4 border-success">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div>
+                            <p class="mb-0 text-secondary">Verified properties</p>
+                            <h4 class="my-1 text-success" id="nx-stat-verified-properties">{{ $stats['verified_properties'] }}</h4>
+                            <p class="mb-0 font-13">Active &amp; verified</p>
+                        </div>
+                        <div class="rounded-circle bg-success-lt text-success ms-auto p-3"><i class="bx bx-check-circle fs-4"></i></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card border-start border-0 border-4 border-info">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div>
+                            <p class="mb-0 text-secondary">Total hosts</p>
+                            <h4 class="my-1 text-info" id="nx-stat-total-hosts">{{ $stats['total_hosts'] }}</h4>
+                            <p class="mb-0 font-13">Superhosts: <span id="nx-stat-superhosts">{{ $stats['superhosts'] }}</span></p>
+                        </div>
+                        <div class="rounded-circle bg-info-lt text-info ms-auto p-3"><i class="bx bx-user-circle fs-4"></i></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-3">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">Quick actions</h6>
                 </div>
                 <div class="card-body">
                     <div class="row g-3">
                         <div class="col-md-3">
                             <a href="{{ route('admin.verification.properties.index') }}" class="btn btn-outline-primary w-100">
-                                <i class='bx bx-check-square me-1'></i> Verify Properties
-                                @if($pendingProperties > 0)
-                                <span class="badge bg-danger ms-1">{{ $pendingProperties }}</span>
+                                <i class="bx bx-check-square me-1"></i> Verify properties
+                                @if ($stats['pending_properties'] > 0)
+                                    <span class="badge bg-danger ms-1" id="nx-badge-pending-properties">{{ $stats['pending_properties'] }}</span>
                                 @endif
                             </a>
                         </div>
                         <div class="col-md-3">
                             <a href="{{ route('admin.verification.hosts.index') }}" class="btn btn-outline-success w-100">
-                                <i class='bx bx-user-check me-1'></i> Verify Hosts
-                                @if($pendingHosts > 0)
-                                <span class="badge bg-danger ms-1">{{ $pendingHosts }}</span>
+                                <i class="bx bx-user-check me-1"></i> Verify hosts
+                                @if ($stats['pending_hosts'] > 0)
+                                    <span class="badge bg-danger ms-1" id="nx-badge-pending-hosts">{{ $stats['pending_hosts'] }}</span>
                                 @endif
                             </a>
                         </div>
                         <div class="col-md-3">
                             <a href="{{ route('admin.reviews.index') }}" class="btn btn-outline-warning w-100">
-                                <i class='bx bx-star me-1'></i> Manage Reviews
-                                @if($pendingReviews > 0)
-                                <span class="badge bg-danger ms-1">{{ $pendingReviews }}</span>
+                                <i class="bx bx-star me-1"></i> Manage reviews
+                                @if ($stats['pending_reviews'] > 0)
+                                    <span class="badge bg-danger ms-1" id="nx-badge-pending-reviews">{{ $stats['pending_reviews'] }}</span>
                                 @endif
                             </a>
                         </div>
                         <div class="col-md-3">
                             <a href="{{ route('admin.coupons.index') }}" class="btn btn-outline-info w-100">
-                                <i class='bx bx-gift me-1'></i> Manage Coupons
+                                <i class="bx bx-gift me-1"></i> Manage coupons
                             </a>
                         </div>
                     </div>
@@ -210,118 +185,154 @@
         </div>
     </div>
 
-    <div class="row">
-       <div class="col-12 col-lg-12 d-flex">
-          <div class="card radius-10 w-100">
-            <div class="card-header">
-                <div class="d-flex align-items-center">
-                    <div>
-                        <h6 class="mb-0">Sales Overview</h6>
-                    </div>
-                     
+    <div class="row mt-3">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">Daily booking revenue (INR, last 14 days)</h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="bookingChart" height="100"></canvas>
                 </div>
             </div>
-            
-              <div class="row row-cols-1 row-cols-md-3 row-cols-xl-3 g-0 row-group text-center border-top">
-                 
-               <canvas id="bookingChart"></canvas>
-               
-              </div>
-          </div>
-       </div>
-       
+        </div>
+    </div>
 
-
-
-    </div><!--end row-->
-
-     <div class="card radius-10">
+    <div class="card mt-3">
         <div class="card-header">
-            <div class="d-flex align-items-center">
-                <div>
-                    <h6 class="mb-0">Recent Booking</h6>
-                </div>
-                
+            <h6 class="mb-0">Recent bookings</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped table-bordered mb-0" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th>Sl</th>
+                            <th>Code</th>
+                            <th>Date</th>
+                            <th>Customer</th>
+                            <th>Stay</th>
+                            <th>Check in / out</th>
+                            <th>Rooms</th>
+                            <th>Guests</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($recentBookings as $key => $item)
+                            <tr>
+                                <td>{{ $key + 1 }}</td>
+                                <td><a href="{{ route('edit_booking', $item->id) }}">{{ $item->code }}</a></td>
+                                <td>{{ $item->created_at->format('d/m/Y') }}</td>
+                                <td>{{ $item->user?->name ?? '—' }}</td>
+                                <td>{{ $item->stay_label }}</td>
+                                <td>
+                                    <span class="badge bg-primary">{{ $item->check_in->format('Y-m-d') }}</span>
+                                    <span class="badge bg-warning text-dark">{{ $item->check_out->format('Y-m-d') }}</span>
+                                </td>
+                                <td>{{ $item->number_of_rooms }}</td>
+                                <td>{{ $item->persion }}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
             </div>
         </div>
-
-        <div class="card-body">
-          <div class="table-responsive">
-              <table class="table table-striped table-bordered" style="width:100%">
-                  <thead>
-                      <tr>
-                          <th>Sl</th>
-                          <th>B No</th>
-                          <th>B Date</th>
-                          <th>Customer</th>
-                          <th>Room</th>
-                          <th>Check IN/Out</th>
-                          <th>Total Room</th>
-                          <th>Guest</th> 
-                      </tr>
-                  </thead>
-                  <tbody>
-                     @foreach ($allData as $key=> $item ) 
-                      <tr>
-                          <td>{{ $key+1 }}</td>
-                          <td> <a href="{{ route('edit_booking',$item->id) }}"> {{ $item->code }} </a></td>
-                          <td> {{ $item->created_at->format('d/m/Y') }} </td>
-                          <td> {{ $item['user']['name'] }} </td>
-                          <td> {{ $item['room']['type']['name'] }} </td>
-                          <td> <span class="badge bg-primary">{{ $item->check_in }}</span>   <span class="badge bg-warning text-dark">{{ $item->check_out }}</span> </td>
-                          <td> {{ $item->number_of_rooms }} </td>
-                          <td> {{ $item->persion }} </td>
-                    
-                           
-                      </tr>
-                      @endforeach 
-                    
-                  </tbody>
-               
-              </table>
-          </div>
-      </div>
-
-
-        </div>
- 
-         
+    </div>
 </div>
 
-
 <script>
-  var ctx = document.getElementById('bookingChart').getContext('2d');
-  var bookings = @json($bookings);
+(function () {
+    var chartLabels = @json($stats['chart_labels']);
+    var chartAmounts = @json($stats['chart_amounts']);
+    var ctx = document.getElementById('bookingChart');
+    var bookingChart = new Chart(ctx.getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: chartLabels,
+            datasets: [{
+                label: 'Revenue (INR)',
+                data: chartAmounts,
+                backgroundColor: 'rgba(13, 110, 110, 0.35)',
+                borderColor: 'rgba(13, 110, 110, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
 
-  // Extract the required data from the bookings
-  var labels = bookings.map(function(booking) {
-      return booking.check_in; 
-  });
+    function formatInr(n) {
+        var x = Number(n) || 0;
+        return '₹' + x.toLocaleString('en-IN', { maximumFractionDigits: 0 });
+    }
 
-  var data = bookings.map(function(booking) {
-      return booking.total_price;
-  });
+    function formatWeekTrend(pct) {
+        if (pct === null || pct === undefined || isNaN(pct)) {
+            return 'No comparison data (last week)';
+        }
+        var sign = pct > 0 ? '+' : '';
+        return sign + Number(pct).toFixed(1) + '% vs last week';
+    }
 
-  var bookingChart = new Chart(ctx, {
-      type: 'bar',
-      data: {
-          labels: labels,
-          datasets: [{
-              label: 'Booking Data',
-              data: data,
-              backgroundColor: 'rgba(75, 192, 192, 0.2)',
-              borderColor: 'rgba(75, 192, 192, 1)',
-              borderWidth: 1
-          }]
-      },
-      options: {
-          scales: {
-              y: {
-                  beginAtZero: true
-              }
-          }
-      }
-  });
+    function formatTime(iso) {
+        try {
+            var d = new Date(iso);
+            return d.toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+        } catch (e) {
+            return '';
+        }
+    }
+
+    function applyStats(s) {
+        var el;
+        el = document.getElementById('nx-stat-total-bookings'); if (el) el.textContent = s.total_bookings;
+        el = document.getElementById('nx-stat-pending-bookings'); if (el) el.textContent = s.pending_bookings;
+        el = document.getElementById('nx-stat-complete-bookings'); if (el) el.textContent = s.complete_bookings;
+        el = document.getElementById('nx-stat-today-revenue'); if (el) el.textContent = formatInr(s.today_revenue);
+        el = document.getElementById('nx-stat-total-revenue'); if (el) el.textContent = formatInr(s.total_revenue);
+        el = document.getElementById('nx-stat-pending-trend'); if (el) el.textContent = formatWeekTrend(s.pending_week_pct);
+        el = document.getElementById('nx-stat-complete-trend'); if (el) el.textContent = formatWeekTrend(s.complete_week_pct);
+        el = document.getElementById('nx-stat-revenue-trend'); if (el) el.textContent = formatWeekTrend(s.revenue_week_pct);
+        el = document.getElementById('nx-stat-total-properties'); if (el) el.textContent = s.total_properties;
+        el = document.getElementById('nx-stat-hotel-properties'); if (el) el.textContent = s.hotel_properties;
+        el = document.getElementById('nx-stat-unique-properties'); if (el) el.textContent = s.unique_stay_properties;
+        el = document.getElementById('nx-stat-pending-properties'); if (el) el.textContent = s.pending_properties;
+        el = document.getElementById('nx-stat-verified-properties'); if (el) el.textContent = s.verified_properties;
+        el = document.getElementById('nx-stat-total-hosts'); if (el) el.textContent = s.total_hosts;
+        el = document.getElementById('nx-stat-superhosts'); if (el) el.textContent = s.superhosts;
+        el = document.getElementById('nx-dashboard-as-of'); if (el) el.textContent = 'Updated: ' + formatTime(s.generated_at);
+
+        bookingChart.data.labels = s.chart_labels;
+        bookingChart.data.datasets[0].data = s.chart_amounts;
+        bookingChart.update();
+
+        function setBadge(id, n) {
+            var b = document.getElementById(id);
+            if (!b) return;
+            if (n > 0) {
+                b.textContent = n;
+                b.style.display = '';
+            } else {
+                b.style.display = 'none';
+            }
+        }
+        setBadge('nx-badge-pending-properties', s.pending_properties);
+        setBadge('nx-badge-pending-hosts', s.pending_hosts);
+        setBadge('nx-badge-pending-reviews', s.pending_reviews);
+    }
+
+    var statsUrl = @json(route('admin.dashboard.stats'));
+    setInterval(function () {
+        fetch(statsUrl, { headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(function (r) { return r.json(); })
+            .then(applyStats)
+            .catch(function () {});
+    }, 45000);
+})();
 </script>
 
 @endsection

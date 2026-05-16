@@ -69,7 +69,7 @@
 
                     <div class="col-md-6">
                         <label for="input1" class="form-label"> </label>
-                        <img id="showImage" src="{{ asset($post->post_image) }}" alt="Admin" class="rounded-circle p-1 bg-primary" width="80">
+                        <img id="showImage" src="{{ \App\Support\MediaUrl::resolve($post->post_image, 'upload/blog') }}" alt="Admin" class="rounded-circle p-1 bg-primary" width="80">
                     </div>
 
 

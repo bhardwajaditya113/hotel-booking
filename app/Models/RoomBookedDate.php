@@ -8,5 +8,16 @@ use Illuminate\Database\Eloquent\Model;
 class RoomBookedDate extends Model
 {
     use HasFactory;
+
     protected $guarded = [];
+
+    public function booking()
+    {
+        return $this->belongsTo(Booking::class, 'booking_id');
+    }
+
+    public function room()
+    {
+        return $this->belongsTo(Room::class, 'room_id');
+    }
 }

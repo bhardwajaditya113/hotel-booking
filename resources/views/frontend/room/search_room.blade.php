@@ -7,12 +7,12 @@
         <div class="inner-title">
             <ul>
                 <li>
-                    <a href="index.html">Home</a>
+                    <a href="{{ url('/') }}">{{ __('site.nav.home') }}</a>
                 </li>
                 <li><i class='bx bx-chevron-right'></i></li>
-                <li>Rooms</li>
+                <li>{{ __('frontend.room.page_title') }}</li>
             </ul>
-            <h3>Rooms</h3>
+            <h3>{{ __('frontend.room.page_title') }}</h3>
         </div>
     </div>
 </div>
@@ -46,7 +46,7 @@
             <div class="col-lg-4 col-md-6">
                 <div class="room-card">
                     <a href="{{ route('search_room_details',$item->id.'?check_in='.old('check_in').'&check_out='.old('check_out').'&persion='.old('persion'))}}">
-                        <img src="{{ asset( 'upload/roomimg/'.$item->image ) }}" alt="Images" style="width: 550px; height:300px;">
+                        <img src="{{ $item->image_url }}" alt="" style="width: 550px; height:300px; object-fit: cover;">
                     </a>
                     <div class="content">
                         <h6>

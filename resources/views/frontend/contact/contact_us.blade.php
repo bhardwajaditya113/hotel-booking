@@ -6,12 +6,12 @@
         <div class="inner-title">
             <ul>
                 <li>
-                    <a href="index.html">Home</a>
+                    <a href="{{ url('/') }}">{{ __('site.nav.home') }}</a>
                 </li>
                 <li><i class='bx bx-chevron-right'></i></li>
-                <li>Contact</li>
+                <li>{{ __('frontend.contact.breadcrumb') }}</li>
             </ul>
-            <h3>Contact</h3>
+            <h3>{{ __('frontend.contact.page_title') }}</h3>
         </div>
     </div>
 </div>
@@ -24,7 +24,7 @@
             <div class="col-lg-6">
                 <div class="contact-content">
                     <div class="section-title">
-                        <h2>Let's Start to Give Us a Message and Contact With Us</h2>
+                        <h2>{{ __('frontend.contact.intro_heading') }}</h2>
                     </div>
                     <div class="contact-img">
                         <img src="{{ asset('frontend/assets/img/contact/contact-img1.jpg') }}" alt="Images">
@@ -40,45 +40,45 @@
         <div class="row">
             <div class="col-lg-6 col-sm-6">
                 <div class="form-group">
-                    <input type="text" name="name" id="name" class="form-control" required data-error="Please enter your name" placeholder="Name">
+                    <input type="text" name="name" id="name" class="form-control" required data-error="{{ __('frontend.contact.data_error_name') }}" placeholder="{{ __('frontend.contact.placeholder_name') }}">
                     <div class="help-block with-errors"></div>
                 </div>
             </div>
 
             <div class="col-lg-6 col-sm-6">
                 <div class="form-group">
-                    <input type="email" name="email" id="email" class="form-control" required data-error="Please enter your email" placeholder="Email">
+                    <input type="email" name="email" id="email" class="form-control" required data-error="{{ __('frontend.contact.data_error_email') }}" placeholder="{{ __('frontend.contact.placeholder_email') }}">
                     <div class="help-block with-errors"></div>
                 </div>
             </div>
 
             <div class="col-lg-6 col-sm-6">
                 <div class="form-group">
-                    <input type="text" name="phone" id="phone_number" required data-error="Please enter your number" class="form-control" placeholder="Phone">
+                    <input type="text" name="phone" id="phone_number" required data-error="{{ __('frontend.contact.data_error_phone') }}" class="form-control" placeholder="{{ __('frontend.contact.placeholder_phone') }}">
                     <div class="help-block with-errors"></div>
                 </div>
             </div>
 
             <div class="col-lg-6 col-sm-6">
                 <div class="form-group">
-                    <input type="text" name="subject" id="msg_subject" class="form-control" required data-error="Please enter your subject" placeholder="Your Subject">
+                    <input type="text" name="subject" id="msg_subject" class="form-control" required data-error="{{ __('frontend.contact.data_error_subject') }}" placeholder="{{ __('frontend.contact.placeholder_subject') }}">
                     <div class="help-block with-errors"></div>
                 </div>
             </div>
 
             <div class="col-lg-12 col-md-12">
                 <div class="form-group">
-                    <textarea name="message" class="form-control" id="message" cols="30" rows="8" required data-error="Write your message" placeholder="Your Message"></textarea>
+                    <textarea name="message" class="form-control" id="message" cols="30" rows="8" required data-error="{{ __('frontend.contact.data_error_message') }}" placeholder="{{ __('frontend.contact.placeholder_message') }}"></textarea>
                     <div class="help-block with-errors"></div>
                 </div>
             </div>
- 
+
 
             <div class="col-lg-12 col-md-12">
                 <button type="submit" class="default-btn btn-bg-three">
-                    Send Message
+                    {{ __('frontend.common.send_message') }}
                 </button>
-                
+
                 <div class="clearfix"></div>
             </div>
         </div>
@@ -91,7 +91,7 @@
 <!-- Contact Area End -->
 
 @php
-    $setting = App\Models\SiteSetting::find(1);
+    $setting = App\Models\SiteSetting::query()->first();
 @endphp
 
 <!-- contact Another -->
@@ -101,11 +101,8 @@
             <div class="col-lg-6">
                 <div class="contact-another-content">
                     <div class="section-title">
-                        <h2>Contacts Info</h2>
-                        <p>
-                            We are one of the best agency and we can easily make a contract
-                            us anytime on the below details.
-                        </p>
+                        <h2>{{ __('frontend.contact.contacts_info_heading') }}</h2>
+                        <p>{{ __('frontend.contact.contacts_info_lead') }}</p>
                     </div>
 
                     <div class="contact-item">
@@ -113,22 +110,22 @@
                             <li>
                                 <i class='bx bx-home-alt'></i>
                                 <div class="content">
-                                    <span>{{ $setting->address }}</span>
-                                    <span>{{ $setting->address }}</span>
+                                    <span>{{ $setting?->address ?? '' }}</span>
+                                    <span>{{ $setting?->address ?? '' }}</span>
                                 </div>
                             </li>
                             <li>
                                 <i class='bx bx-phone-call'></i>
                                 <div class="content">
-                                    <span><a href="tel:{{ $setting->phone }}">{{ $setting->phone }}</a></span>
-                                    <span><a href="tel:{{ $setting->phone }}">{{ $setting->phone }}</a></span>
+                                    <span><a href="tel:{{ $setting?->phone ?? '' }}">{{ $setting?->phone ?? '' }}</a></span>
+                                    <span><a href="tel:{{ $setting?->phone ?? '' }}">{{ $setting?->phone ?? '' }}</a></span>
                                 </div>
                             </li>
                             <li>
                                 <i class='bx bx-envelope'></i>
                 <div class="content">
-                    <span><a href="{{ $setting->email }}">{{ $setting->email }}</a></span>
-                    <span><a href="{{ $setting->email }}">{{ $setting->email }}</a></span>
+                    <span><a href="mailto:{{ $setting?->email ?? '' }}">{{ $setting?->email ?? '' }}</a></span>
+                    <span><a href="mailto:{{ $setting?->email ?? '' }}">{{ $setting?->email ?? '' }}</a></span>
                 </div>
                             </li>
                         </ul>
@@ -151,4 +148,3 @@
 
 
 @endsection
-

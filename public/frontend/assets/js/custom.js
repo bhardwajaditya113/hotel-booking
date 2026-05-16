@@ -283,8 +283,8 @@
     // WOW JS
     new WOW().init();
 
-    // Nice Select JS
-    $('select').niceSelect();
+    // Nice Select JS (skip host listing wizard — native selects for a11y + automation)
+    $('select').not('#nxListingCreateForm select, #nxListingEditForm select').niceSelect();
 
     // Back To Top Js
     $('body').append('<div id="toTop" class="top-btn"><i class="bx bx-chevrons-up"></i></div>');

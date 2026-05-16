@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -8,6 +9,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class HostProfile extends Model
 {
     use HasFactory, SoftDeletes;
+
     protected $guarded = [];
 
     protected $casts = [
@@ -84,8 +86,9 @@ class HostProfile extends Model
     public function getPhotoUrlAttribute()
     {
         if ($this->photo) {
-            return asset('upload/host_profiles/' . $this->photo);
+            return asset('upload/host_profiles/'.$this->photo);
         }
+
         return asset('upload/no_image.jpg');
     }
 
@@ -93,15 +96,15 @@ class HostProfile extends Model
     {
         $properties = $this->properties()->active()->get();
         $bookings = Booking::whereIn('property_id', $properties->pluck('id'))->get();
-        
-        $reviews = Review::whereHas('room', function($q) use ($properties) {
+
+        $reviews = Review::whereHas('room', function ($q) use ($properties) {
             $q->whereIn('property_id', $properties->pluck('id'));
         })->approved()->get();
 
         $this->update([
             'total_properties' => $properties->count(),
             'total_bookings' => $bookings->count(),
-            'average_rating' => $reviews->avg('overall_rating') ?? 0,
+            'average_rating' => $reviews->avg('rating_overall') ?? 0,
             'total_reviews' => $reviews->count(),
         ]);
     }
@@ -127,21 +130,21 @@ class HostProfile extends Model
         $totalBookings = $completedBookings + $cancelledBookings;
         $cancellationRate = $totalBookings > 0 ? ($cancelledBookings / $totalBookings) * 100 : 0;
 
-        $eligible = 
+        $eligible =
             ($completedBookings >= 10 || ($completedBookings >= 3 && $this->total_bookings >= 100)) &&
             ($this->response_rate >= 90) &&
             ($cancellationRate < 1) &&
             ($this->average_rating >= 4.8);
 
-        if ($eligible && !$this->is_superhost) {
+        if ($eligible && ! $this->is_superhost) {
             $this->update([
                 'is_superhost' => true,
-                'superhost_since' => now()
+                'superhost_since' => now(),
             ]);
-        } elseif (!$eligible && $this->is_superhost) {
+        } elseif (! $eligible && $this->is_superhost) {
             $this->update([
                 'is_superhost' => false,
-                'superhost_since' => null
+                'superhost_since' => null,
             ]);
         }
 

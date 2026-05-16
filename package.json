@@ -3,16 +3,26 @@
     "type": "module",
     "scripts": {
         "dev": "vite",
-        "build": "vite build"
+        "build": "vite build",
+        "e2e:prep": "bash scripts/e2e-prep.sh",
+        "e2e": "bash scripts/run-e2e.sh",
+        "e2e:ui": "E2E_SKIP_PREP=1 npx playwright test --ui",
+        "e2e:headed": "E2E_SKIP_PREP=1 npx playwright test --headed"
     },
     "devDependencies": {
+        "@playwright/test": "^1.60.0",
         "@tailwindcss/forms": "^0.5.2",
         "alpinejs": "^3.4.2",
         "autoprefixer": "^10.4.2",
         "axios": "^1.1.2",
+        "laravel-echo": "^1.16.1",
         "laravel-vite-plugin": "^0.7.5",
         "postcss": "^8.4.6",
+        "pusher-js": "^8.4.0",
         "tailwindcss": "^3.1.0",
         "vite": "^4.0.0"
+    },
+    "dependencies": {
+        "@tabler/core": "^1.4.0"
     }
 }

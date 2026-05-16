@@ -22,20 +22,20 @@ class CouponController extends Controller
 
         $coupon = Coupon::where('code', strtoupper($request->code))->first();
 
-        if (!$coupon) {
+        if (! $coupon) {
             return response()->json([
                 'success' => false,
-                'message' => 'Invalid coupon code'
+                'message' => 'Invalid coupon code',
             ]);
         }
 
         // Validate the coupon
-        $validation = $coupon->isValid($request->amount, Auth::id(), $request->room_id);
-        
-        if (!$validation['valid']) {
+        $validation = $coupon->canBeUsedBy(Auth::id(), $request->room_id, (float) $request->amount, null);
+
+        if (! $validation['valid']) {
             return response()->json([
                 'success' => false,
-                'message' => $validation['message']
+                'message' => $validation['message'],
             ]);
         }
 
@@ -47,8 +47,8 @@ class CouponController extends Controller
             'coupon_id' => $coupon->id,
             'code' => $coupon->code,
             'discount' => $discount,
-            'type' => $coupon->discount_type,
-            'message' => "Coupon applied! You save ₹" . number_format($discount, 2)
+            'type' => $coupon->type,
+            'message' => 'Coupon applied! You save ₹'.number_format($discount, 2),
         ]);
     }
 
@@ -59,7 +59,7 @@ class CouponController extends Controller
     {
         return response()->json([
             'success' => true,
-            'message' => 'Coupon removed'
+            'message' => 'Coupon removed',
         ]);
     }
 
@@ -68,7 +68,9 @@ class CouponController extends Controller
      */
     public static function recordUsage($couponId, $userId, $bookingId, $discountAmount)
     {
-        if (!$couponId) return;
+        if (! $couponId) {
+            return;
+        }
 
         CouponUsage::create([
             'coupon_id' => $couponId,
@@ -78,45 +80,45 @@ class CouponController extends Controller
         ]);
 
         // Increment usage count
-        Coupon::where('id', $couponId)->increment('used_count');
+        Coupon::where('id', $couponId)->increment('times_used');
     }
 
     /**
-     * List available coupons for user
+     * List valid coupons for checkout / wallet UI (schema-aligned with coupons table).
      */
     public function available(Request $request)
     {
-        $coupons = Coupon::where('is_active', true)
-            ->where(function($query) {
+        $coupons = Coupon::query()
+            ->active()
+            ->where(function ($query) {
                 $query->whereNull('valid_from')
-                      ->orWhere('valid_from', '<=', now());
+                    ->orWhere('valid_from', '<=', now());
             })
-            ->where(function($query) {
+            ->where(function ($query) {
                 $query->whereNull('valid_until')
-                      ->orWhere('valid_until', '>=', now());
+                    ->orWhere('valid_until', '>=', now());
             })
-            ->where(function($query) {
-                $query->whereNull('max_uses')
-                      ->orWhereRaw('used_count < max_uses');
+            ->where(function ($query) {
+                $query->whereNull('total_uses')
+                    ->orWhereRaw('times_used < total_uses');
             })
-            ->where('is_public', true)
-            ->orderBy('discount_value', 'desc')
+            ->orderByDesc('value')
             ->get()
-            ->map(function($coupon) {
+            ->map(function ($coupon) {
                 return [
                     'code' => $coupon->code,
                     'description' => $coupon->description,
-                    'discount' => $coupon->discount_type === 'percentage' 
-                        ? $coupon->discount_value . '% off' 
-                        : '₹' . $coupon->discount_value . ' off',
+                    'discount' => $coupon->type === 'percentage'
+                        ? $coupon->value.'% off'
+                        : '₹'.number_format((float) $coupon->value, 2).' off',
                     'min_amount' => $coupon->min_booking_amount,
-                    'max_discount' => $coupon->max_discount_amount,
+                    'max_discount' => $coupon->max_discount,
                     'valid_until' => $coupon->valid_until ? $coupon->valid_until->format('M d, Y') : null,
                 ];
             });
 
         return response()->json([
-            'coupons' => $coupons
+            'coupons' => $coupons,
         ]);
     }
 }

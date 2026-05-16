@@ -2,39 +2,27 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\User;
 use Illuminate\Database\Seeder;
-use DB;
-use Illuminate\Support\Facades\Hash;
 
 class UsersTableSeeder extends Seeder
 {
     /**
      * Run the database seeds.
+     * Idempotent so tests can re-run DatabaseSeeder after a shared migrated database.
      */
     public function run(): void
     {
-        DB::table('users')->insert([
+        $this->call(AdminUserSeeder::class);
 
-            // Admin
-            [
-                'name' => 'Admin',
-                'email' => 'admin@gmail.com',
-                'password' => Hash::make('111'),
-                'role' => 'admin',
-                'status' => 'active',
-            ],
-
-            // User
-
+        User::updateOrCreate(
+            ['email' => 'user@gmail.com'],
             [
                 'name' => 'User',
-                'email' => 'user@gmail.com',
-                'password' => Hash::make('111'),
+                'password' => '111',
                 'role' => 'user',
                 'status' => 'active',
-            ],
- 
-        ]);
+            ]
+        );
     }
 }

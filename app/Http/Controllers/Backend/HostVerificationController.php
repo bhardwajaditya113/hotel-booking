@@ -69,7 +69,7 @@ class HostVerificationController extends Controller
             ? 'Host verified successfully!' 
             : 'Host verification rejected.';
 
-        return redirect()->route('admin.verification.hosts')
+        return redirect()->route('admin.verification.hosts.index')
             ->with('success', $message);
     }
 

@@ -76,7 +76,7 @@
                 <div class="mt-4 bg-gray-50 rounded-lg p-4 border-l-4 border-blue-500">
                     <div class="flex items-center mb-2">
                         <i class="fa-solid fa-hotel text-blue-600 mr-2"></i>
-                        <span class="font-medium text-sm">Response from Hotel</span>
+                        <span class="font-medium text-sm">{{ __('site.reviews.response_from_host') }}</span>
                     </div>
                     <p class="text-gray-700 text-sm">{{ $review->manager_response }}</p>
                 </div>

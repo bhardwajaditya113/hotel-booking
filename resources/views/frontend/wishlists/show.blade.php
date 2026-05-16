@@ -1,12 +1,20 @@
-@extends('frontend.main_master')
+@extends('frontend.dashboard.account_master')
 
-@section('main')
-<div class="container mx-auto px-4 py-8">
+@section('account_breadcrumb')
+    <li><a href="{{ route('wishlists.index') }}">{{ __('frontend.account.title_wishlists') }}</a></li>
+@endsection
+
+@section('account_title')
+    {{ \Illuminate\Support\Str::limit($wishlist->name, 48) }}
+@endsection
+
+@section('account_content')
+<div class="w-full">
     <div class="max-w-4xl mx-auto">
         <!-- Header -->
         <div class="mb-8">
-            <a href="{{ route('wishlists.index') }}" class="text-blue-600 hover:underline mb-2 inline-block">
-                <i class="fa-solid fa-arrow-left mr-2"></i> Back to Wishlists
+            <a href="{{ route('wishlists.index') }}" class="text-teal-700 hover:underline mb-2 inline-block font-semibold">
+                <i class="fa-solid fa-arrow-left mr-2"></i> {{ __('frontend.account.back_to_wishlists') }}
             </a>
             <div class="flex flex-wrap items-center justify-between">
                 <div>
@@ -35,14 +43,14 @@
                 <div class="flex flex-col md:flex-row">
                     <div class="md:w-1/3">
                         <a href="{{ url('/room/details/' . $item->room->id) }}">
-                            <img src="{{ asset($item->room->image) }}" alt="{{ $item->room->room_name }}" 
+                            <img src="{{ $item->room->image_url }}" alt="{{ $item->room->room_name }}" 
                                  class="w-full h-48 md:h-full object-cover">
                         </a>
                     </div>
                     <div class="md:w-2/3 p-6">
                         <div class="flex justify-between items-start">
                             <div>
-                                <a href="{{ url('/room/details/' . $item->room->id) }}" class="text-xl font-semibold hover:text-blue-600">
+                                <a href="{{ url('/room/details/' . $item->room->id) }}" class="text-xl font-semibold text-slate-900 hover:text-teal-700">
                                     {{ $item->room->room_name }}
                                 </a>
                                 <p class="text-gray-500">{{ $item->room->type->name ?? 'Standard Room' }}</p>
@@ -75,7 +83,7 @@
                         <!-- Price & Actions -->
                         <div class="flex flex-wrap items-end justify-between mt-4 pt-4 border-t">
                             <div>
-                                <span class="text-2xl font-bold text-blue-600">₹{{ number_format($item->room->price) }}</span>
+                                <span class="text-2xl font-bold text-teal-700">₹{{ number_format($item->room->price) }}</span>
                                 <span class="text-gray-500">/night</span>
                             </div>
                             <div class="flex gap-2 mt-2 sm:mt-0">
@@ -88,8 +96,8 @@
                                         @endif
                                     @endforeach
                                 </select>
-                                <a href="{{ url('/room/details/' . $item->room->id) }}" 
-                                   class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                                <a href="{{ url('/room/details/' . $item->room->id) }}"
+                                   class="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700">
                                     View Room
                                 </a>
                             </div>
@@ -111,7 +119,7 @@
             <i class="fa-regular fa-heart text-6xl text-gray-300 mb-4"></i>
             <h3 class="text-xl font-semibold text-gray-600">This wishlist is empty</h3>
             <p class="text-gray-500 mt-2">Start adding rooms you love!</p>
-            <a href="{{ route('froom.all') }}" class="mt-6 inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+            <a href="{{ route('froom.all') }}" class="mt-6 inline-block px-6 py-3 bg-teal-600 text-white rounded-lg hover:bg-teal-700">
                 Browse Rooms
             </a>
         </div>
@@ -134,19 +142,19 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
                     <input type="email" name="email" required placeholder="friend@example.com"
-                           class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
+                           class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-teal-500">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Message (Optional)</label>
                     <textarea name="message" rows="3" placeholder="Check out these amazing rooms!"
-                              class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"></textarea>
+                              class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-teal-500"></textarea>
                 </div>
             </div>
             <div class="mt-6 flex gap-3">
                 <button type="button" onclick="closeShareModal()" class="flex-1 px-4 py-2 border rounded-lg hover:bg-gray-50">
                     Cancel
                 </button>
-                <button type="submit" class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                <button type="submit" class="flex-1 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700">
                     <i class="fa-solid fa-paper-plane mr-2"></i> Send
                 </button>
             </div>
@@ -154,10 +162,17 @@
     </div>
 </div>
 
+@endsection
+
+@push('scripts')
 <script>
 function shareWishlist() {
     document.getElementById('shareModal').classList.remove('hidden');
     document.getElementById('shareModal').classList.add('flex');
+}
+
+function editWishlist() {
+    window.location.href = '{{ route('wishlists.index') }}';
 }
 
 function closeShareModal() {
@@ -167,7 +182,7 @@ function closeShareModal() {
 
 function removeFromWishlist(itemId, roomId) {
     if (!confirm('Remove this room from wishlist?')) return;
-    
+
     fetch('{{ route('wishlist.remove') }}', {
         method: 'POST',
         headers: {
@@ -190,7 +205,7 @@ function removeFromWishlist(itemId, roomId) {
 
 function moveToWishlist(itemId, toWishlistId) {
     if (!toWishlistId) return;
-    
+
     fetch('{{ route('wishlist.move') }}', {
         method: 'POST',
         headers: {
@@ -219,4 +234,4 @@ function showToast(message, type = 'success') {
     setTimeout(() => toast.remove(), 3000);
 }
 </script>
-@endsection
+@endpush

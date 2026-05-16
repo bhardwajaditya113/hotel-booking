@@ -94,7 +94,7 @@
                         <input type="file" name="logo" class="form-control"    />
 
 
-                         <img src="{{ asset($site->logo) }}" alt="" style="width: 100px; height:100px;">
+                        <img id="showImage" src="{{ \App\Support\MediaUrl::resolve($site->logo, 'upload/logo') }}" alt="" style="width: 100px; height:100px;">
                     </div>
                 </div>
                

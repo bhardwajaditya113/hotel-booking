@@ -45,7 +45,7 @@
 
                         <tr>
     <td>{{ $key+1 }}</td>
-    <td> <img src="{{ (!empty($item->room->image)) ? url('upload/roomimg/'.$item->room->image) : url('upload/no_image.jpg') }}" alt="" style="width: 50px; height:30px;" >   </td>
+    <td> <img src="{{ ($r = $item->room) && ! empty($r->image) ? $r->image_url : \App\Support\MediaUrl::resolve(null) }}" alt="" style="width: 50px; height:30px;" >   </td>
                             <td>{{ $item->name }}</td> 
                             <td>
 

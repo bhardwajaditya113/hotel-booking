@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\MediaUrl;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -56,16 +57,15 @@ class Wishlist extends Model
     public function getCoverUrlAttribute()
     {
         if ($this->cover_image) {
-            return asset('upload/wishlists/' . $this->cover_image);
+            return MediaUrl::resolve($this->cover_image, 'upload/wishlists');
         }
-        
-        // Return first item's room image as cover
+
         $firstItem = $this->items()->with('room')->first();
         if ($firstItem && $firstItem->room) {
-            return asset('upload/roomimg/' . $firstItem->room->image);
+            return $firstItem->room->image_url;
         }
-        
-        return asset('frontend/img/default-wishlist.jpg');
+
+        return MediaUrl::resolve(null);
     }
 
     // Scopes
@@ -129,12 +129,12 @@ class Wishlist extends Model
         if ($this->privacy === 'public') {
             return route('wishlist.public', ['id' => $this->id]);
         }
-        
+
         $share = $this->shares()->whereNotNull('invite_token')->first();
         if ($share) {
             return route('wishlist.shared', ['token' => $share->invite_token]);
         }
-        
+
         return null;
     }
 }

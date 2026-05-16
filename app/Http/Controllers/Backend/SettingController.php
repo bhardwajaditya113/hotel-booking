@@ -3,22 +3,35 @@
 namespace App\Http\Controllers\Backend;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use App\Models\SmtpSetting;
 use App\Models\SiteSetting;
+use App\Models\SmtpSetting;
+use Illuminate\Http\Request;
 use Intervention\Image\Facades\Image;
 
 class SettingController extends Controller
 {
-    public function SmtpSetting(){
+    public function SmtpSetting()
+    {
 
-        $smtp = SmtpSetting::find(1);
-        return view('backend.setting.smpt_update',compact('smtp'));
+        $smtp = SmtpSetting::query()->first();
+        if ($smtp === null) {
+            $smtp = SmtpSetting::create([
+                'mailer' => config('mail.default', 'log'),
+                'host' => '',
+                'port' => '',
+                'username' => '',
+                'password' => '',
+                'encryption' => '',
+                'from_address' => config('mail.from.address', ''),
+            ]);
+        }
 
-    }// End Method 
+        return view('backend.setting.smpt_update', compact('smtp'));
 
+    }// End Method
 
-    public function SmtpUpdate(Request $request){
+    public function SmtpUpdate(Request $request)
+    {
 
         $smtp_id = $request->id;
 
@@ -32,79 +45,74 @@ class SettingController extends Controller
             'from_address' => $request->from_address,
         ]);
 
-        $notification = array(
+        $notification = [
             'message' => 'Smtp Setting Updated Successfully',
-            'alert-type' => 'success'
-        );
+            'alert-type' => 'success',
+        ];
 
-        return redirect()->back()->with($notification);  
-    }// End Method 
+        return redirect()->back()->with($notification);
+    }// End Method
 
+    public function SiteSetting()
+    {
 
-    public function SiteSetting(){
+        $site = SiteSetting::forAdminEdit();
 
-        $site = SiteSetting::find(1);
-        return view('backend.site.site_update',compact('site'));
+        return view('backend.site.site_update', compact('site'));
 
-    }// End Method 
+    }// End Method
 
-
-    public function SiteUpdate(Request $request){
+    public function SiteUpdate(Request $request)
+    {
 
         $site_id = $request->id;
 
-        if($request->file('logo')){
+        if ($request->file('logo')) {
 
             $image = $request->file('logo');
             $name_gen = hexdec(uniqid()).'.'.$image->getClientOriginalExtension();
-            Image::make($image)->resize(110,44)->save('upload/site/'.$name_gen);
+            Image::make($image)->resize(110, 44)->save('upload/site/'.$name_gen);
             $save_url = 'upload/site/'.$name_gen;
-    
+
             SiteSetting::findOrFail($site_id)->update([
-    
+
                 'phone' => $request->phone,
                 'address' => $request->address,
                 'email' => $request->email,
                 'facebook' => $request->facebook,
                 'twitter' => $request->twitter,
                 'copyright' => $request->copyright,
-                'logo' => $save_url, 
+                'logo' => $save_url,
             ]);
-    
-            $notification = array(
-                'message' => 'Site Setting Updated Successfully',
-                'alert-type' => 'success'
-            );
-    
-            return redirect()->back()->with($notification);
 
+            $notification = [
+                'message' => 'Site Setting Updated Successfully',
+                'alert-type' => 'success',
+            ];
+
+            return redirect()->back()->with($notification);
 
         } else {
 
             SiteSetting::findOrFail($site_id)->update([
-    
+
                 'phone' => $request->phone,
                 'address' => $request->address,
                 'email' => $request->email,
                 'facebook' => $request->facebook,
                 'twitter' => $request->twitter,
-                'copyright' => $request->copyright, 
+                'copyright' => $request->copyright,
             ]);
-    
-            $notification = array(
+
+            $notification = [
                 'message' => 'Site Setting Updated Successfully',
-                'alert-type' => 'success'
-            );
-    
+                'alert-type' => 'success',
+            ];
+
             return redirect()->back()->with($notification);
 
-        } // End Eles 
+        } // End Eles
 
-
-    }// End Method 
-
-
-
+    }// End Method
 
 }
- 

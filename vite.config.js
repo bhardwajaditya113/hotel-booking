@@ -6,7 +6,10 @@ export default defineConfig({
         laravel({
             input: [
                 'resources/css/app.css',
+                'resources/css/nexstay-admin-tabler.css',
                 'resources/js/app.js',
+                'resources/js/portal-sync.js',
+                'resources/js/booking-realtime.js',
             ],
             refresh: true,
         }),

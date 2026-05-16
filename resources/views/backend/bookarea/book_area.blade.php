@@ -83,7 +83,7 @@
                         <h6 class="mb-0">  </h6>
                     </div>
                     <div class="col-sm-9 text-secondary">
-                        <img id="showImage" src="{{ asset($book->image) }}" alt="Admin" class="rounded-circle p-1 bg-primary" width="80">
+                        <img id="showImage" src="{{ \App\Support\MediaUrl::resolve($book->image, 'upload/bookarea') }}" alt="Admin" class="rounded-circle p-1 bg-primary" width="80">
                     </div>
                 </div>
                

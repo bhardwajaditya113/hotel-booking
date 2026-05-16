@@ -4,8 +4,8 @@
 <div class="testimonials-area-three pb-70">
     <div class="container">
         <div class="section-title text-center">
-            <span class="sp-color">TESTIMONIAL</span>
-            <h2>Our Latest Testimonials and What Our Client Says</h2>
+            <span class="sp-color">{{ __('site.testimonials.eyebrow') }}</span>
+            <h2>{{ __('site.testimonials.title') }}</h2>
         </div>
         <div class="row align-items-center pt-45">
             <div class="col-lg-6 col-md-6">
@@ -16,8 +16,8 @@
 
             <div class="col-lg-6 col-md-6">
                 <div class="testimonials-slider-area owl-carousel owl-theme">
-                    
-                    @foreach ($testimonial as $item) 
+
+                    @foreach ($testimonial as $item)
                     <div class="testimonials-slider-content">
                         <i class="flaticon-left-quote"></i>
                         <p>
@@ -25,14 +25,14 @@
                         </p>
                         <ul>
                             <li>
-                                <img src="{{ asset($item->image) }}" alt="Images">
+                                <img src="{{ \App\Support\MediaUrl::resolve($item->image) }}" alt="">
                                 <h3>{{ $item->name }}</h3>
                                 <span>{{ $item->city }}</span>
                             </li>
                         </ul>
                     </div>
                     @endforeach
-                     
+
                 </div>
             </div>
         </div>

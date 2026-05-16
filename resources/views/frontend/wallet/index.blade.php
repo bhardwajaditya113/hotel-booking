@@ -1,22 +1,24 @@
-@extends('frontend.main_master')
+@extends('frontend.dashboard.account_master')
 
-@section('main')
-<div class="container mx-auto px-4 py-8">
+@section('account_title', __('frontend.account.title_wallet'))
+
+@section('account_content')
+<div class="w-full">
     <!-- Wallet Header -->
-    <div class="bg-gradient-to-r from-green-600 to-teal-600 rounded-2xl p-8 text-white mb-8">
+    <div class="nx-tw-hero p-8 shadow-sm mb-8">
         <div class="flex flex-wrap items-center justify-between">
             <div>
                 <h1 class="text-3xl font-bold mb-2">My Wallet</h1>
-                <p class="text-green-100">Manage your wallet balance and transactions</p>
+                <p class="nx-tw-hero-sub">Manage your wallet balance and transactions</p>
             </div>
             <div class="text-right mt-4 lg:mt-0">
                 <div class="text-4xl font-bold">{{ $wallet->formatted_balance }}</div>
-                <div class="text-green-100">Available Balance</div>
+                <div class="nx-tw-hero-sub">Available Balance</div>
             </div>
         </div>
         
         <div class="mt-6 flex flex-wrap gap-4">
-            <a href="{{ route('wallet.add-money') }}" class="px-6 py-3 bg-white text-green-600 rounded-lg font-semibold hover:bg-green-50 transition">
+            <a href="{{ route('wallet.add-money') }}" class="px-6 py-3 bg-white text-teal-700 rounded-lg font-semibold hover:bg-slate-50 transition shadow-sm">
                 <i class="fa-solid fa-plus mr-2"></i> Add Money
             </a>
             <button onclick="openStatementModal()" class="px-6 py-3 bg-white/20 text-white rounded-lg font-semibold hover:bg-white/30 transition">
@@ -105,9 +107,9 @@
                 <div class="flex flex-wrap justify-between items-center mb-6">
                     <h3 class="text-lg font-semibold">Transaction History</h3>
                     <div class="flex gap-2 mt-2 sm:mt-0">
-                        <button onclick="filterTransactions('all')" class="filter-btn active px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-600">All</button>
-                        <button onclick="filterTransactions('credits')" class="filter-btn px-3 py-1 rounded-full text-sm bg-gray-100 text-gray-600 hover:bg-green-100 hover:text-green-600">Credits</button>
-                        <button onclick="filterTransactions('debits')" class="filter-btn px-3 py-1 rounded-full text-sm bg-gray-100 text-gray-600 hover:bg-red-100 hover:text-red-600">Debits</button>
+                        <button onclick="filterTransactions(event, 'all')" class="filter-btn active px-3 py-1 rounded-full text-sm bg-teal-100 text-teal-800">All</button>
+                        <button onclick="filterTransactions(event, 'credits')" class="filter-btn px-3 py-1 rounded-full text-sm bg-gray-100 text-gray-600 hover:bg-green-100 hover:text-green-600">Credits</button>
+                        <button onclick="filterTransactions(event, 'debits')" class="filter-btn px-3 py-1 rounded-full text-sm bg-gray-100 text-gray-600 hover:bg-red-100 hover:text-red-600">Debits</button>
                     </div>
                 </div>
 
@@ -135,7 +137,7 @@
                     <div class="text-center py-12 text-gray-500">
                         <i class="fa-solid fa-wallet text-5xl mb-4"></i>
                         <p>No transactions yet</p>
-                        <a href="{{ route('wallet.add-money') }}" class="mt-4 inline-block px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                        <a href="{{ route('wallet.add-money') }}" class="mt-4 inline-block px-6 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700">
                             Add Money Now
                         </a>
                     </div>
@@ -177,7 +179,7 @@
                 <button type="button" onclick="closeStatementModal()" class="flex-1 px-4 py-2 border rounded-lg hover:bg-gray-50">
                     Cancel
                 </button>
-                <button type="submit" class="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                <button type="submit" class="flex-1 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700">
                     Download PDF
                 </button>
             </div>
@@ -185,6 +187,9 @@
     </div>
 </div>
 
+@endsection
+
+@push('scripts')
 <script>
 function openStatementModal() {
     document.getElementById('statementModal').classList.remove('hidden');
@@ -196,22 +201,22 @@ function closeStatementModal() {
     document.getElementById('statementModal').classList.remove('flex');
 }
 
-function filterTransactions(type) {
-    // Update active button
+function filterTransactions(evt, type) {
     document.querySelectorAll('.filter-btn').forEach(btn => {
-        btn.classList.remove('active', 'bg-blue-100', 'text-blue-600');
+        btn.classList.remove('active', 'bg-teal-100', 'text-teal-800');
         btn.classList.add('bg-gray-100', 'text-gray-600');
     });
-    event.target.classList.add('active', 'bg-blue-100', 'text-blue-600');
-    event.target.classList.remove('bg-gray-100', 'text-gray-600');
-    
-    // AJAX call to filter transactions
+    var t = evt && evt.target ? evt.target.closest('button') : null;
+    if (t) {
+        t.classList.add('active', 'bg-teal-100', 'text-teal-800');
+        t.classList.remove('bg-gray-100', 'text-gray-600');
+    }
+
     fetch(`{{ route('wallet.transactions') }}?type=${type}`)
         .then(res => res.json())
         .then(data => {
-            // Update transactions list
             console.log(data);
         });
 }
 </script>
-@endsection
+@endpush

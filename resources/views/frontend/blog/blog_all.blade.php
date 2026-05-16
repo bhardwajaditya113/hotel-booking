@@ -7,12 +7,12 @@
             <div class="inner-title">
                 <ul>
                     <li>
-                        <a href="index.html">Home</a>
+                        <a href="{{ url('/') }}">{{ __('site.nav.home') }}</a>
                     </li>
                     <li><i class='bx bx-chevron-right'></i></li>
-                    <li>Blog</li>
+                    <li>{{ __('frontend.blog.page_title') }}</li>
                 </ul>
-                <h3>Blog</h3>
+                <h3>{{ __('frontend.blog.page_title') }}</h3>
             </div>
         </div>
     </div>
@@ -31,8 +31,8 @@
                             <div class="row align-items-center">
                                 <div class="col-lg-5 col-md-4 p-0">
                                     <div class="blog-img">
-                                        <a href="{{ url('blog/details/'.$item->post_slug) }}">
-                                            <img src="{{ asset($item->post_image) }}" alt="Images">
+                                        <a href="{{ route('blog.details', $item->post_slug) }}">
+                                            <img src="{{ \App\Support\MediaUrl::resolve($item->post_image, 'upload/blog') }}" alt="">
                                         </a>
                                     </div>
                                 </div>
@@ -41,11 +41,11 @@
                     <div class="blog-content">
                 <span>{{ $item->created_at->format('M d Y')  }}</span>
                         <h3>
-                            <a href="{{ url('blog/details/'.$item->post_slug) }}">{{ $item->post_titile }}</a>
+                            <a href="{{ route('blog.details', $item->post_slug) }}">{{ $item->post_titile }}</a>
                         </h3>
                         <p>{{ $item->short_descp }}</p>
-                        <a href="{{ url('blog/details/'.$item->post_slug) }}" class="read-btn">
-                            Read More
+                        <a href="{{ route('blog.details', $item->post_slug) }}" class="read-btn">
+                            {{ __('frontend.common.read_more') }}
                         </a>
                     </div>
                 </div>
@@ -58,7 +58,7 @@
                     <div class="col-lg-12 col-md-12">
                         <div class="pagination-area">
 
-                            {{ $blog->links('vendor.pagination.custom') }}
+                            {{ $blog->links() }}
 
                         </div>
                     </div>
@@ -68,35 +68,35 @@
                     <div class="side-bar-wrap">
                         <div class="search-widget">
                             <form class="search-form">
-                                <input type="search" class="form-control" placeholder="Search...">
+                                <input type="search" class="form-control" placeholder="{{ __('frontend.common.search_placeholder') }}">
                                 <button type="submit">
                                     <i class="bx bx-search"></i>
                                 </button>
                             </form>
                         </div>
                         <div class="services-bar-widget">
-                            <h3 class="title">Blog Category</h3>
+                            <h3 class="title">{{ __('frontend.blog.category_title') }}</h3>
                             <div class="side-bar-categories">
                                 @foreach ($bcategory as $cat) 
                                 <ul>
                                     <li>
-                                        <a href="{{ url('blog/cat/list/'.$cat->id) }}">{{ $cat->category_name }}</a>
+                                        <a href="{{ route('blog.cat.list', $cat->id) }}">{{ $cat->category_name }}</a>
                                     </li> 
                                 </ul>
                                 @endforeach
                             </div>
                         </div>
                         <div class="side-bar-widget">
-                            <h3 class="title">Recent Posts</h3>
+                            <h3 class="title">{{ __('frontend.blog.recent_posts') }}</h3>
                             <div class="widget-popular-post">
                                 @foreach ($lpost as $post)   
                             <article class="item">
-                                <a href="blog-details.html" class="thumb">
-                <img src="{{ asset($post->post_image) }}" alt="Images" style="width: 80px; height:80px;">      
+                                <a href="{{ route('blog.details', $post->post_slug) }}" class="thumb">
+                <img src="{{ \App\Support\MediaUrl::resolve($post->post_image, 'upload/blog') }}" alt="" style="width: 80px; height:80px;">      
                                 </a>
                                 <div class="info">
                                     <h4 class="title-text">
-                                        <a href="blog-details.html">
+                                        <a href="{{ route('blog.details', $post->post_slug) }}">
                                             {{ $post->post_titile }}
                                         </a>
                                     </h4>

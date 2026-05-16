@@ -2,12 +2,16 @@
 
 namespace App\Models;
 
+use App\Support\MediaUrl;
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Room extends Model
 {
     use HasFactory;
+
     protected $guarded = [];
 
     protected $casts = [
@@ -16,12 +20,39 @@ class Room extends Model
         'instant_book' => 'boolean',
     ];
 
-    public function type(){
+    public function type()
+    {
         return $this->belongsTo(RoomType::class, 'roomtype_id', 'id');
     }
 
-    public function room_numbers(){
-        return $this->hasMany(RoomNumber::class, 'rooms_id')->where('status','Active');
+    public function room_numbers()
+    {
+        return $this->hasMany(RoomNumber::class, 'rooms_id')->where('status', 'Active');
+    }
+
+    /**
+     * Nightly inventory rows used by bookings (column: book_date).
+     */
+    public function roomBookedDates()
+    {
+        return $this->hasMany(RoomBookedDate::class, 'room_id');
+    }
+
+    /**
+     * Rooms with no overlapping booked nights in [check_in, check_out).
+     */
+    public function scopeAvailableBetween($query, $checkIn, $checkOut): Builder
+    {
+        $start = Carbon::parse($checkIn)->toDateString();
+        $endExclusive = Carbon::parse($checkOut);
+        if ($endExclusive->lte(Carbon::parse($start))) {
+            return $query;
+        }
+        $end = $endExclusive->copy()->subDay()->toDateString();
+
+        return $query->whereDoesntHave('roomBookedDates', function ($q) use ($start, $end) {
+            $q->whereBetween('book_date', [$start, $end]);
+        });
     }
 
     // ==========================================
@@ -56,7 +87,7 @@ class Room extends Model
     public function amenities()
     {
         return $this->belongsToMany(Amenity::class, 'room_amenities')
-            ->withPivot('is_included', 'additional_price', 'notes')
+            ->withPivot('is_paid', 'price', 'notes')
             ->withTimestamps();
     }
 
@@ -66,20 +97,16 @@ class Room extends Model
         return $this->belongsToMany(Tag::class, 'room_tags');
     }
 
-    // Nearby places
+    // Nearby places (one row per point of interest linked to this room)
     public function nearbyPlaces()
     {
-        return $this->belongsToMany(NearbyPlace::class, 'room_nearby_places')
-            ->withPivot('distance_km', 'walking_time_mins', 'driving_time_mins')
-            ->withTimestamps();
+        return $this->hasMany(NearbyPlace::class);
     }
 
-    // House rules
+    // House rules rows for this room
     public function houseRules()
     {
-        return $this->belongsToMany(HouseRule::class, 'room_house_rules')
-            ->withPivot('custom_value', 'is_allowed')
-            ->withTimestamps();
+        return $this->hasMany(HouseRule::class);
     }
 
     // Cancellation policy
@@ -97,13 +124,13 @@ class Room extends Model
     // Pricing rules
     public function pricingRules()
     {
-        return $this->hasMany(PricingRule::class)->active()->ordered();
+        return $this->hasMany(PricingRule::class);
     }
 
     // Multi images (existing)
     public function multiImages()
     {
-        return $this->hasMany(MultiImage::class);
+        return $this->hasMany(MultiImage::class, 'rooms_id');
     }
 
     // ==========================================
@@ -112,7 +139,9 @@ class Room extends Model
 
     public function scopeActive($query)
     {
-        return $query->where('status', 'Active');
+        return $query->where(function ($q) {
+            $q->where('status', 'Active')->orWhere('status', 1);
+        });
     }
 
     public function scopeFeatured($query)
@@ -141,8 +170,13 @@ class Room extends Model
 
     public function scopePriceRange($query, $min, $max)
     {
-        if ($min) $query->where('price', '>=', $min);
-        if ($max) $query->where('price', '<=', $max);
+        if ($min) {
+            $query->where('price', '>=', $min);
+        }
+        if ($max) {
+            $query->where('price', '<=', $max);
+        }
+
         return $query;
     }
 
@@ -158,21 +192,21 @@ class Room extends Model
     // Get average rating
     public function getAverageRatingAttribute()
     {
-        return $this->approvedReviews()->avg('overall_rating') ?? 0;
+        return $this->approvedReviews()->avg('rating_overall') ?? 0;
     }
 
     // Get rating breakdown
     public function getRatingBreakdownAttribute()
     {
         $reviews = $this->approvedReviews;
-        
+
         return [
-            'overall' => round($reviews->avg('overall_rating') ?? 0, 1),
-            'cleanliness' => round($reviews->avg('cleanliness_rating') ?? 0, 1),
-            'location' => round($reviews->avg('location_rating') ?? 0, 1),
-            'value' => round($reviews->avg('value_rating') ?? 0, 1),
-            'service' => round($reviews->avg('service_rating') ?? 0, 1),
-            'amenities' => round($reviews->avg('amenities_rating') ?? 0, 1),
+            'overall' => round($reviews->avg('rating_overall') ?? 0, 1),
+            'cleanliness' => round($reviews->avg('rating_cleanliness') ?? 0, 1),
+            'location' => round($reviews->avg('rating_location') ?? 0, 1),
+            'value' => round($reviews->avg('rating_value') ?? 0, 1),
+            'service' => round($reviews->avg('rating_service') ?? 0, 1),
+            'amenities' => round($reviews->avg('rating_amenities') ?? 0, 1),
             'count' => $reviews->count(),
         ];
     }
@@ -190,19 +224,19 @@ class Room extends Model
     // Calculate dynamic price for a date range
     public function calculatePrice($checkIn, $checkOut, $guests = 1)
     {
-        $checkIn = \Carbon\Carbon::parse($checkIn);
-        $checkOut = \Carbon\Carbon::parse($checkOut);
+        $checkIn = Carbon::parse($checkIn);
+        $checkOut = Carbon::parse($checkOut);
         $nights = $checkIn->diffInDays($checkOut);
-        
+
         $totalPrice = 0;
         $currentDate = $checkIn->copy();
-        
+
         while ($currentDate < $checkOut) {
             $nightPrice = $this->getPriceForDate($currentDate);
             $totalPrice += $nightPrice;
             $currentDate->addDay();
         }
-        
+
         // Extra guest charges
         $baseGuests = $this->total_adult ?? 2;
         if ($guests > $baseGuests) {
@@ -210,7 +244,7 @@ class Room extends Model
             $extraCharge = ($this->extra_guest_charge ?? 0) * $extraGuests * $nights;
             $totalPrice += $extraCharge;
         }
-        
+
         return [
             'nights' => $nights,
             'subtotal' => $totalPrice,
@@ -223,16 +257,16 @@ class Room extends Model
     // Get price for a specific date
     public function getPriceForDate($date)
     {
-        $date = \Carbon\Carbon::parse($date);
+        $date = Carbon::parse($date);
         $basePrice = $this->price;
-        
+
         // Apply pricing rules
-        foreach ($this->pricingRules as $rule) {
+        foreach ($this->pricingRules()->active()->orderBy('priority')->get() as $rule) {
             if ($rule->appliesTo($date)) {
-                $basePrice = $rule->applyToPrice($basePrice);
+                $basePrice = $rule->applyTo($basePrice);
             }
         }
-        
+
         return $basePrice;
     }
 
@@ -243,39 +277,29 @@ class Room extends Model
     // Check availability for date range
     public function isAvailable($checkIn, $checkOut)
     {
-        $checkIn = \Carbon\Carbon::parse($checkIn);
-        $checkOut = \Carbon\Carbon::parse($checkOut);
-        
-        // Get booked room numbers for this date range
-        $bookedRoomNumbers = RoomBookedDate::where('booking_date', '>=', $checkIn)
-            ->where('booking_date', '<', $checkOut)
-            ->whereHas('roomNumber', function ($q) {
-                $q->where('rooms_id', $this->id);
-            })
-            ->pluck('room_number_id')
-            ->unique();
-        
-        // Check if any room numbers are available
-        $totalRooms = $this->room_numbers()->count();
-        $bookedCount = $bookedRoomNumbers->count();
-        
-        return $totalRooms > $bookedCount;
+        $checkIn = Carbon::parse($checkIn)->startOfDay();
+        $checkOut = Carbon::parse($checkOut)->startOfDay();
+        if ($checkOut->lte($checkIn)) {
+            return true;
+        }
+        $end = $checkOut->copy()->subDay();
+
+        $overlap = RoomBookedDate::where('room_id', $this->id)
+            ->whereBetween('book_date', [$checkIn->toDateString(), $end->toDateString()])
+            ->exists();
+
+        return ! $overlap;
     }
 
     // Get available room count for date range
     public function getAvailableCount($checkIn, $checkOut)
     {
-        $checkIn = \Carbon\Carbon::parse($checkIn);
-        $checkOut = \Carbon\Carbon::parse($checkOut);
-        
-        $bookedRoomNumbers = RoomBookedDate::whereBetween('booking_date', [$checkIn, $checkOut->subDay()])
-            ->whereHas('roomNumber', function ($q) {
-                $q->where('rooms_id', $this->id);
-            })
-            ->pluck('room_number_id')
-            ->unique();
-        
-        return $this->room_numbers()->count() - $bookedRoomNumbers->count();
+        if (! $this->isAvailable($checkIn, $checkOut)) {
+            return 0;
+        }
+        $n = $this->room_numbers()->count();
+
+        return $n > 0 ? $n : 1;
     }
 
     // ==========================================
@@ -285,7 +309,7 @@ class Room extends Model
     // Get formatted price
     public function getFormattedPriceAttribute()
     {
-        return '₹' . number_format($this->price, 0);
+        return '₹'.number_format($this->price, 0);
     }
 
     // Get featured amenities
@@ -304,5 +328,10 @@ class Room extends Model
     public function getWishlistCountAttribute()
     {
         return $this->wishlistItems()->count();
+    }
+
+    public function getImageUrlAttribute(): string
+    {
+        return MediaUrl::resolve($this->image, 'upload/roomimg');
     }
 }

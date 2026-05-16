@@ -38,10 +38,10 @@ class UserLoyalty extends Model
     public static function getOrCreate($userId)
     {
         $loyalty = self::where('user_id', $userId)->first();
-        
-        if (!$loyalty) {
+
+        if (! $loyalty) {
             $defaultTier = LoyaltyTier::active()->orderBy('min_points')->first();
-            
+
             $loyalty = self::create([
                 'user_id' => $userId,
                 'loyalty_tier_id' => $defaultTier->id ?? 1,
@@ -52,7 +52,7 @@ class UserLoyalty extends Model
                 'total_spent' => 0,
             ]);
         }
-        
+
         return $loyalty;
     }
 
@@ -113,20 +113,20 @@ class UserLoyalty extends Model
     public function checkTierUpgrade()
     {
         $newTier = LoyaltyTier::getTierByPoints($this->lifetime_points);
-        
+
         if ($newTier && $newTier->id !== $this->loyalty_tier_id) {
             $oldTier = $this->tier;
-            
+
             $this->update([
                 'loyalty_tier_id' => $newTier->id,
                 'tier_upgraded_at' => now(),
             ]);
 
             // TODO: Send tier upgrade notification
-            
+
             return $newTier;
         }
-        
+
         return null;
     }
 
@@ -134,8 +134,8 @@ class UserLoyalty extends Model
     public function getNextTierProgressAttribute()
     {
         $nextTier = $this->tier?->next_tier;
-        
-        if (!$nextTier) {
+
+        if (! $nextTier) {
             return ['percentage' => 100, 'points_needed' => 0, 'next_tier' => null];
         }
 
@@ -150,6 +150,22 @@ class UserLoyalty extends Model
             'points_needed' => max(0, $pointsNeeded),
             'next_tier' => $nextTier,
         ];
+    }
+
+    /** Alias used by loyalty UI/controllers for `available_points`. */
+    public function getCurrentPointsAttribute(): int
+    {
+        return (int) $this->available_points;
+    }
+
+    public function getPointsToNextTier(): int
+    {
+        return (int) ($this->next_tier_progress['points_needed'] ?? 0);
+    }
+
+    public function getNextTier(): ?LoyaltyTier
+    {
+        return $this->next_tier_progress['next_tier'] ?? null;
     }
 
     // Record a booking

@@ -1,152 +1,75 @@
-@extends('frontend.main_master')
-@section('main')
-<div class="container py-8">
-    <div class="max-w-4xl mx-auto bg-white rounded-xl shadow-md p-8">
-        <div class="flex justify-between items-center mb-6">
-            <h2 class="text-2xl font-bold">Edit Property</h2>
-            <a href="{{ route('property.dashboard') }}" class="text-blue-600 hover:underline">← Back to Dashboard</a>
-        </div>
+@extends('frontend.dashboard.account_master')
 
-        @if($errors->any())
-        <div class="mb-4 p-4 bg-red-100 text-red-800 rounded">
-            <ul>
-                @foreach($errors->all() as $error)
-                <li>{{ $error }}</li>
+@section('account_breadcrumb')
+    <li>
+        <a href="{{ route('dashboard') }}">{{ __('frontend.host_listing.breadcrumb_account') }}</a>
+        <span class="opacity-50 mx-1">/</span>
+        <a href="{{ route('property.dashboard') }}">{{ __('frontend.host_listing.breadcrumb_hub') }}</a>
+        <span class="opacity-50 mx-1">/</span>
+        <span class="text-muted">{{ __('frontend.host_listing.edit_page_title') }}</span>
+    </li>
+@endsection
+
+@section('account_title')
+    {{ __('frontend.host_listing.edit_page_title') }}
+@endsection
+
+@section('account_content')
+<div class="nx-host-listing-form">
+    <div class="nx-host-listing-hero rounded-4 p-4 p-lg-5 mb-4 position-relative overflow-hidden">
+        <div class="position-relative" style="z-index: 2;">
+            <div class="d-flex flex-column flex-lg-row align-items-lg-start justify-content-between gap-4">
+                <div class="flex-grow-1">
+                    <p class="text-white-50 small fw-semibold text-uppercase mb-2" style="letter-spacing: 0.12em;">
+                        {{ __('frontend.host_listing.edit_hero_kicker') }}
+                    </p>
+                    <h2 class="h3 fw-bold text-white mb-2">{{ __('frontend.host_listing.edit_hero_title') }}</h2>
+                    <p class="text-white mb-0 opacity-90" style="max-width: 38rem;">{{ $property->name }}</p>
+                </div>
+                <div class="flex-shrink-0">
+                    <a href="{{ route('property.dashboard') }}" class="btn btn-outline-light rounded-pill px-4 fw-semibold border-2">
+                        <i class="bx bx-arrow-back me-1"></i>{{ __('frontend.host_listing.back_dashboard') }}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if ($types->isEmpty())
+        <div class="alert alert-warning border-0 rounded-4 shadow-sm mb-4 d-flex gap-3 align-items-start">
+            <i class="bx bx-error-circle fs-4 mt-1"></i>
+            <div>{{ __('frontend.host_listing.types_missing') }}</div>
+        </div>
+    @endif
+
+    @if ($errors->any())
+        <div class="alert alert-danger border-0 rounded-4 shadow-sm mb-4">
+            <div class="fw-semibold mb-2">{{ __('frontend.host_listing.validation_heading') }}</div>
+            <ul class="mb-0 ps-3">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
                 @endforeach
             </ul>
         </div>
-        @endif
+    @endif
 
-        <form action="{{ route('property.update', $property->id) }}" method="POST">
-            @csrf
-            @method('PUT')
+    <form action="{{ route('property.update', $property->id) }}" method="POST" id="nxListingEditForm" class="nx-host-listing-form-inner">
+        @csrf
+        @method('PUT')
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="md:col-span-2">
-                    <label class="block font-medium mb-1">Property Name <span class="text-red-500">*</span></label>
-                    <input type="text" name="name" value="{{ old('name', $property->name) }}" 
-                           class="w-full border rounded px-3 py-2" required>
-                </div>
-
-                <div>
-                    <label class="block font-medium mb-1">Property Type <span class="text-red-500">*</span></label>
-                    <select name="property_type_id" class="w-full border rounded px-3 py-2" required>
-                        <option value="">Select type</option>
-                        @foreach($types as $type)
-                            <option value="{{ $type->id }}" {{ $property->property_type_id == $type->id ? 'selected' : '' }}>
-                                {{ $type->name }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <div>
-                    <label class="block font-medium mb-1">Listing Type</label>
-                    <input type="text" value="{{ ucfirst(str_replace('_', ' ', $property->listing_type)) }}" 
-                           class="w-full border rounded px-3 py-2 bg-gray-100" disabled>
-                    <p class="text-sm text-gray-500 mt-1">Listing type cannot be changed after creation.</p>
-                </div>
-
-                <div class="md:col-span-2">
-                    <label class="block font-medium mb-1">Address <span class="text-red-500">*</span></label>
-                    <input type="text" name="address" value="{{ old('address', $property->address) }}" 
-                           class="w-full border rounded px-3 py-2" required>
-                </div>
-
-                <div>
-                    <label class="block font-medium mb-1">City <span class="text-red-500">*</span></label>
-                    <input type="text" name="city" value="{{ old('city', $property->city) }}" 
-                           class="w-full border rounded px-3 py-2" required>
-                </div>
-
-                <div>
-                    <label class="block font-medium mb-1">State</label>
-                    <input type="text" name="state" value="{{ old('state', $property->state) }}" 
-                           class="w-full border rounded px-3 py-2">
-                </div>
-
-                <div>
-                    <label class="block font-medium mb-1">Country <span class="text-red-500">*</span></label>
-                    <input type="text" name="country" value="{{ old('country', $property->country) }}" 
-                           class="w-full border rounded px-3 py-2" required>
-                </div>
-
-                <div>
-                    <label class="block font-medium mb-1">Zipcode</label>
-                    <input type="text" name="zipcode" value="{{ old('zipcode', $property->zipcode) }}" 
-                           class="w-full border rounded px-3 py-2">
-                </div>
-
-                <div>
-                    <label class="block font-medium mb-1">Latitude (for map)</label>
-                    <input type="number" step="any" name="latitude" 
-                           value="{{ old('latitude', $property->latitude) }}" 
-                           class="w-full border rounded px-3 py-2" placeholder="e.g., 19.0760">
-                </div>
-
-                <div>
-                    <label class="block font-medium mb-1">Longitude (for map)</label>
-                    <input type="number" step="any" name="longitude" 
-                           value="{{ old('longitude', $property->longitude) }}" 
-                           class="w-full border rounded px-3 py-2" placeholder="e.g., 72.8777">
-                </div>
-
-                <div class="md:col-span-2">
-                    <label class="block font-medium mb-1">Description</label>
-                    <textarea name="description" rows="5" 
-                              class="w-full border rounded px-3 py-2">{{ old('description', $property->description) }}</textarea>
-                </div>
-
-                <div>
-                    <label class="block font-medium mb-1">Phone</label>
-                    <input type="text" name="phone" value="{{ old('phone', $property->phone) }}" 
-                           class="w-full border rounded px-3 py-2">
-                </div>
-
-                <div>
-                    <label class="block font-medium mb-1">Email</label>
-                    <input type="email" name="email" value="{{ old('email', $property->email) }}" 
-                           class="w-full border rounded px-3 py-2">
-                </div>
-
-                <div class="md:col-span-2">
-                    <label class="flex items-center">
-                        <input type="checkbox" name="instant_book_enabled" value="1" 
-                               {{ old('instant_book_enabled', $property->instant_book_enabled) ? 'checked' : '' }} 
-                               class="mr-2">
-                        <span>Enable Instant Booking</span>
-                    </label>
-                    <p class="text-sm text-gray-500 mt-1">If unchecked, guests must request to book and wait for approval.</p>
-                </div>
-
-                <div class="md:col-span-2">
-                    <div class="bg-gray-50 p-4 rounded-lg">
-                        <h3 class="font-semibold mb-2">Verification Status</h3>
-                        <p class="text-sm">
-                            <span class="px-2 py-1 rounded text-xs 
-                                {{ $property->verification_status === 'verified' ? 'bg-green-100 text-green-800' : 
-                                   ($property->verification_status === 'rejected' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800') }}">
-                                {{ ucfirst($property->verification_status) }}
-                            </span>
-                        </p>
-                        @if($property->verification_notes)
-                        <p class="text-sm text-gray-600 mt-2">{{ $property->verification_notes }}</p>
-                        @endif
-                    </div>
-                </div>
-            </div>
-
-            <div class="mt-6 flex gap-4">
-                <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">
-                    Update Property
-                </button>
-                <a href="{{ route('property.dashboard') }}" class="bg-gray-200 text-gray-800 px-6 py-2 rounded hover:bg-gray-300">
-                    Cancel
-                </a>
-            </div>
-        </form>
-    </div>
+        @include('frontend.property.partials.listing-form-fields', [
+            'listing' => $property,
+            'types' => $types,
+            'countries' => $countries,
+            'indianStatesUt' => $indianStatesUt,
+            'amenityCategories' => $amenityCategories,
+            'submitLabel' => __('frontend.host_listing.submit_update'),
+            'submitDisabled' => $types->isEmpty(),
+        ])
+    </form>
 </div>
 @endsection
 
-
+@push('scripts')
+    @include('frontend.property.partials.listing-form-scripts')
+@endpush

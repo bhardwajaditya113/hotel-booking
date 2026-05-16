@@ -43,7 +43,7 @@
                        @foreach ($testimonial as $key=> $item ) 
                         <tr>
                             <td>{{ $key+1 }}</td>
-                            <td> <img src="{{ asset($item->image) }}" alt="" style="width:70px; height:40px;" > </td>
+                            <td> <img src="{{ \App\Support\MediaUrl::resolve($item->image) }}" alt="" style="width:70px; height:40px;" > </td>
                             <td>{{ $item->name }}</td>
                             <td>{{ $item->city }}</td> 
                             <td>

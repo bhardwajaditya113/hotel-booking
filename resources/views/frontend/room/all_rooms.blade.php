@@ -7,12 +7,12 @@
         <div class="inner-title">
             <ul>
                 <li>
-                    <a href="{{ url('/') }}">Home</a>
+                    <a href="{{ url('/') }}">{{ __('site.nav.home') }}</a>
                 </li>
                 <li><i class='bx bx-chevron-right'></i></li>
-                <li>Rooms</li>
+                <li>{{ __('frontend.room.page_title') }}</li>
             </ul>
-            <h3>Rooms</h3>
+            <h3>{{ __('frontend.room.page_title') }}</h3>
         </div>
     </div>
 </div>
@@ -31,7 +31,7 @@
             <div class="col-lg-4 col-md-6">
                 <div class="room-card">
                     <a href="{{ url('room/details/'.$item->id) }}">
-                        <img src="{{ asset( 'upload/roomimg/'.$item->image ) }}" alt="Images" style="width: 550px; height:300px;">
+                        <img src="{{ $item->image_url }}" alt="" style="width: 550px; height:300px; object-fit: cover;">
                     </a>
                     <div class="content">
                         <h6><a href="{{ url('room/details/'.$item->id) }}">{{ $item['type']['name'] }}</a></h6>

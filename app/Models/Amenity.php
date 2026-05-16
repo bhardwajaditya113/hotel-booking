@@ -27,7 +27,7 @@ class Amenity extends Model
     public function rooms()
     {
         return $this->belongsToMany(Room::class, 'room_amenities')
-            ->withPivot('is_included', 'additional_price', 'notes')
+            ->withPivot('is_paid', 'price', 'notes')
             ->withTimestamps();
     }
 
@@ -67,8 +67,11 @@ class Amenity extends Model
     // Get formatted price
     public function getFormattedPriceAttribute()
     {
-        if (!$this->is_paid) return 'Free';
-        return '₹' . number_format($this->price, 2);
+        if (! $this->is_paid) {
+            return 'Free';
+        }
+
+        return '₹'.number_format($this->price, 2);
     }
 
     // Create default amenities
@@ -83,7 +86,7 @@ class Amenity extends Model
             ['category' => 'room-amenities', 'name' => 'Safe', 'icon' => 'fa-vault', 'sort_order' => 5],
             ['category' => 'room-amenities', 'name' => 'Work Desk', 'icon' => 'fa-desktop', 'sort_order' => 6],
             ['category' => 'room-amenities', 'name' => 'Wardrobe', 'icon' => 'fa-door-closed', 'sort_order' => 7],
-            
+
             // Bathroom
             ['category' => 'bathroom', 'name' => 'Private Bathroom', 'icon' => 'fa-bath', 'sort_order' => 1],
             ['category' => 'bathroom', 'name' => 'Shower', 'icon' => 'fa-shower', 'sort_order' => 2],
@@ -91,14 +94,14 @@ class Amenity extends Model
             ['category' => 'bathroom', 'name' => 'Hair Dryer', 'icon' => 'fa-wind', 'sort_order' => 4],
             ['category' => 'bathroom', 'name' => 'Toiletries', 'icon' => 'fa-soap', 'sort_order' => 5],
             ['category' => 'bathroom', 'name' => 'Towels', 'icon' => 'fa-scroll', 'sort_order' => 6],
-            
+
             // Media & Technology
             ['category' => 'media-technology', 'name' => 'Free WiFi', 'icon' => 'fa-wifi', 'sort_order' => 1, 'is_featured' => true],
             ['category' => 'media-technology', 'name' => 'Smart TV', 'icon' => 'fa-tv', 'sort_order' => 2],
             ['category' => 'media-technology', 'name' => 'Netflix', 'icon' => 'fa-film', 'sort_order' => 3],
             ['category' => 'media-technology', 'name' => 'USB Charging', 'icon' => 'fa-plug', 'sort_order' => 4],
             ['category' => 'media-technology', 'name' => 'Bluetooth Speaker', 'icon' => 'fa-volume-high', 'sort_order' => 5],
-            
+
             // Food & Drink
             ['category' => 'food-drink', 'name' => 'Breakfast Included', 'icon' => 'fa-mug-saucer', 'sort_order' => 1, 'is_featured' => true],
             ['category' => 'food-drink', 'name' => 'Mini Bar', 'icon' => 'fa-wine-glass', 'sort_order' => 2],
@@ -106,7 +109,7 @@ class Amenity extends Model
             ['category' => 'food-drink', 'name' => 'Electric Kettle', 'icon' => 'fa-mug-hot', 'sort_order' => 4],
             ['category' => 'food-drink', 'name' => 'Room Service', 'icon' => 'fa-bell-concierge', 'sort_order' => 5],
             ['category' => 'food-drink', 'name' => 'Kitchenette', 'icon' => 'fa-kitchen-set', 'sort_order' => 6],
-            
+
             // Services
             ['category' => 'services', 'name' => 'Housekeeping', 'icon' => 'fa-broom', 'sort_order' => 1],
             ['category' => 'services', 'name' => 'Laundry Service', 'icon' => 'fa-shirt', 'sort_order' => 2],
@@ -114,7 +117,7 @@ class Amenity extends Model
             ['category' => 'services', 'name' => 'Concierge', 'icon' => 'fa-concierge-bell', 'sort_order' => 4],
             ['category' => 'services', 'name' => 'Airport Shuttle', 'icon' => 'fa-plane', 'sort_order' => 5, 'is_paid' => true],
             ['category' => 'services', 'name' => 'Car Rental', 'icon' => 'fa-car', 'sort_order' => 6, 'is_paid' => true],
-            
+
             // Outdoor & View
             ['category' => 'outdoor-view', 'name' => 'Balcony', 'icon' => 'fa-square', 'sort_order' => 1],
             ['category' => 'outdoor-view', 'name' => 'Garden View', 'icon' => 'fa-tree', 'sort_order' => 2],
@@ -122,26 +125,26 @@ class Amenity extends Model
             ['category' => 'outdoor-view', 'name' => 'Sea View', 'icon' => 'fa-water', 'sort_order' => 4],
             ['category' => 'outdoor-view', 'name' => 'Mountain View', 'icon' => 'fa-mountain', 'sort_order' => 5],
             ['category' => 'outdoor-view', 'name' => 'Pool Access', 'icon' => 'fa-person-swimming', 'sort_order' => 6, 'is_featured' => true],
-            
+
             // Accessibility
             ['category' => 'accessibility', 'name' => 'Wheelchair Accessible', 'icon' => 'fa-wheelchair', 'sort_order' => 1],
             ['category' => 'accessibility', 'name' => 'Elevator Access', 'icon' => 'fa-elevator', 'sort_order' => 2],
             ['category' => 'accessibility', 'name' => 'Ground Floor', 'icon' => 'fa-layer-group', 'sort_order' => 3],
-            
+
             // Safety & Security
             ['category' => 'safety-security', 'name' => 'Fire Extinguisher', 'icon' => 'fa-fire-extinguisher', 'sort_order' => 1],
             ['category' => 'safety-security', 'name' => 'Smoke Detector', 'icon' => 'fa-bell', 'sort_order' => 2],
             ['category' => 'safety-security', 'name' => 'First Aid Kit', 'icon' => 'fa-kit-medical', 'sort_order' => 3],
             ['category' => 'safety-security', 'name' => 'CCTV', 'icon' => 'fa-video', 'sort_order' => 4],
             ['category' => 'safety-security', 'name' => 'Security Guard', 'icon' => 'fa-user-shield', 'sort_order' => 5],
-            
+
             // Recreation
             ['category' => 'recreation', 'name' => 'Swimming Pool', 'icon' => 'fa-person-swimming', 'sort_order' => 1],
             ['category' => 'recreation', 'name' => 'Gym/Fitness', 'icon' => 'fa-dumbbell', 'sort_order' => 2],
             ['category' => 'recreation', 'name' => 'Spa', 'icon' => 'fa-spa', 'sort_order' => 3, 'is_paid' => true],
             ['category' => 'recreation', 'name' => 'Yoga Room', 'icon' => 'fa-peace', 'sort_order' => 4],
             ['category' => 'recreation', 'name' => 'Game Room', 'icon' => 'fa-gamepad', 'sort_order' => 5],
-            
+
             // Business
             ['category' => 'business', 'name' => 'Business Center', 'icon' => 'fa-briefcase', 'sort_order' => 1],
             ['category' => 'business', 'name' => 'Meeting Room', 'icon' => 'fa-users', 'sort_order' => 2, 'is_paid' => true],
@@ -157,7 +160,7 @@ class Amenity extends Model
                 $amenity['is_active'] = true;
                 $amenity['is_featured'] = $amenity['is_featured'] ?? false;
                 $amenity['is_paid'] = $amenity['is_paid'] ?? false;
-                
+
                 self::updateOrCreate(['slug' => $amenity['slug']], $amenity);
             }
         }

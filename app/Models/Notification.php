@@ -9,6 +9,9 @@ class Notification extends Model
 {
     use HasFactory;
 
+    /** In-app notifications (not Laravel's database_notifications morph table). */
+    protected $table = 'user_notifications';
+
     protected $guarded = [];
 
     protected $casts = [
@@ -56,9 +59,10 @@ class Notification extends Model
     // Mark as read
     public function markAsRead()
     {
-        if (!$this->read_at) {
+        if (! $this->read_at) {
             $this->update(['read_at' => now()]);
         }
+
         return $this;
     }
 
@@ -66,6 +70,7 @@ class Notification extends Model
     public function markAsUnread()
     {
         $this->update(['read_at' => null]);
+
         return $this;
     }
 
@@ -84,7 +89,7 @@ class Notification extends Model
     // Get icon based on type
     public function getTypeIconAttribute()
     {
-        return match($this->type) {
+        return match ($this->type) {
             'booking' => 'fa-calendar-check',
             'payment' => 'fa-credit-card',
             'review' => 'fa-star',
@@ -99,7 +104,7 @@ class Notification extends Model
     // Get badge color based on type
     public function getTypeBadgeAttribute()
     {
-        return match($this->type) {
+        return match ($this->type) {
             'booking' => 'primary',
             'payment' => 'success',
             'review' => 'warning',
@@ -115,9 +120,10 @@ class Notification extends Model
     public static function send($userId, $templateSlug, $data = [], $bookingId = null)
     {
         $template = NotificationTemplate::active()->bySlug($templateSlug)->first();
-        
-        if (!$template) {
+
+        if (! $template) {
             \Log::warning("Notification template not found: {$templateSlug}");
+
             return null;
         }
 

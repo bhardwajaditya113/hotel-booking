@@ -35,8 +35,10 @@
             <label for="roomtype_id" class="form-label">Room Type</label>
             <select name="room_id" id="room_id" class="form-select">
                 <option selected="">Select Room Type </option>
-                @foreach ($roomtype as $item) 
+                @foreach ($roomtype as $item)
+                    @if ($item->room)
                 <option value="{{ $item->room->id }}" {{ collect(old('roomtype_id'))->contains($item->id) ? 'selected' : '' }} >{{ $item->name }}</option>
+                    @endif
                 @endforeach
             </select>
         </div>

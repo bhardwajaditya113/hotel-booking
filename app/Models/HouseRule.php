@@ -16,11 +16,9 @@ class HouseRule extends Model
     ];
 
     // Relationships
-    public function rooms()
+    public function room()
     {
-        return $this->belongsToMany(Room::class, 'room_house_rules')
-            ->withPivot('custom_value', 'is_allowed')
-            ->withTimestamps();
+        return $this->belongsTo(Room::class);
     }
 
     // Scopes

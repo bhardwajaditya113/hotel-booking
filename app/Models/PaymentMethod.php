@@ -52,8 +52,13 @@ class PaymentMethod extends Model
     // Check if amount is within limits
     public function isAmountValid($amount)
     {
-        if ($this->min_amount && $amount < $this->min_amount) return false;
-        if ($this->max_amount && $amount > $this->max_amount) return false;
+        if ($this->min_amount && $amount < $this->min_amount) {
+            return false;
+        }
+        if ($this->max_amount && $amount > $this->max_amount) {
+            return false;
+        }
+
         return true;
     }
 
@@ -61,13 +66,17 @@ class PaymentMethod extends Model
     public function calculateFee($amount)
     {
         $percentageFee = $amount * ($this->transaction_fee / 100);
+
         return round($percentageFee + $this->fixed_fee, 2);
     }
 
     // Check if currency is supported
     public function supportsCurrency($currency)
     {
-        if (empty($this->supported_currencies)) return true;
+        if (empty($this->supported_currencies)) {
+            return true;
+        }
+
         return in_array($currency, $this->supported_currencies);
     }
 
@@ -76,19 +85,6 @@ class PaymentMethod extends Model
     {
         $methods = [
             [
-                'name' => 'Credit/Debit Card (Stripe)',
-                'slug' => 'stripe',
-                'provider' => 'stripe',
-                'icon' => 'fa-credit-card',
-                'description' => 'Pay securely with Visa, Mastercard, or American Express',
-                'supported_currencies' => ['INR', 'USD', 'EUR', 'GBP'],
-                'is_active' => true,
-                'is_default' => true,
-                'sort_order' => 1,
-                'transaction_fee' => 2.9,
-                'fixed_fee' => 0.30,
-            ],
-            [
                 'name' => 'Razorpay',
                 'slug' => 'razorpay',
                 'provider' => 'razorpay',
@@ -96,7 +92,8 @@ class PaymentMethod extends Model
                 'description' => 'Pay with UPI, Cards, Net Banking, Wallets',
                 'supported_currencies' => ['INR'],
                 'is_active' => true,
-                'sort_order' => 2,
+                'is_default' => true,
+                'sort_order' => 1,
                 'transaction_fee' => 2.0,
                 'fixed_fee' => 0,
             ],

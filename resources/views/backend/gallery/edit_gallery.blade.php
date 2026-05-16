@@ -41,7 +41,7 @@
 
     <div class="col-md-6">
         <label for="input1" class="form-label">  </label>
-        <img src="{{ asset($gallery->photo_name) }}" alt="" style="width: 70px; height:70px;">
+        <img src="{{ \App\Support\MediaUrl::resolve($gallery->photo_name, 'upload/gallery') }}" alt="" style="width: 70px; height:70px;">
          
     </div>
  

@@ -3,14 +3,16 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use DB;
+use Illuminate\Auth\Passwords\CanResetPassword;
+use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
-use DB;
 
-class User extends Authenticatable
+class User extends Authenticatable implements CanResetPasswordContract
 {
     // Host profile (for individual or company hosts)
     public function hostProfile()
@@ -25,7 +27,7 @@ class User extends Authenticatable
         return $this->hasMany(Property::class);
     }
 
-    use HasApiTokens, HasFactory, Notifiable, HasRoles;
+    use CanResetPassword, HasApiTokens, HasFactory, HasRoles, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -54,32 +56,38 @@ class User extends Authenticatable
         'password' => 'hashed',
     ];
 
-    public static function getpermissionGroups(){
+    public static function getpermissionGroups()
+    {
 
         $permission_groups = DB::table('permissions')->select('group_name')->groupBy('group_name')->get();
+
         return $permission_groups;
 
-    } // End Method 
+    } // End Method
 
-    public static function getpermissionByGroupName($group_name){
+    public static function getpermissionByGroupName($group_name)
+    {
 
         $permissions = DB::table('permissions')
-                            ->select('name','id')
-                            ->where('group_name',$group_name)
-                            ->get();
-            return $permissions;
+            ->select('name', 'id')
+            ->where('group_name', $group_name)
+            ->get();
 
-    }// End Method 
+        return $permissions;
 
-    public static function roleHasPermissions($role,$permissions){
+    }// End Method
+
+    public static function roleHasPermissions($role, $permissions)
+    {
         $hasPermission = true;
         foreach ($permissions as $permission) {
-           if (!$role->hasPermissionTo($permission->name)) {
-            $hasPermission = false;
-           }
-           return $hasPermission;
+            if (! $role->hasPermissionTo($permission->name)) {
+                $hasPermission = false;
+            }
+
+            return $hasPermission;
         }
-    }// End Method 
+    }// End Method
 
     // ==========================================
     // NEW RELATIONSHIPS FOR ENHANCED FEATURES
@@ -169,10 +177,13 @@ class User extends Authenticatable
         return $this->hasMany(PaymentTransaction::class);
     }
 
-    // Notifications
-    public function notifications()
+    /**
+     * In-app notifications stored in user_notifications.
+     * (Do not name this "notifications" — it would override Notifiable's morph relation.)
+     */
+    public function panelNotifications()
     {
-        return $this->hasMany(Notification::class);
+        return $this->hasMany(Notification::class, 'user_id');
     }
 
     // Coupon usages
@@ -194,10 +205,7 @@ class User extends Authenticatable
     // Get or create loyalty
     public function getOrCreateLoyalty()
     {
-        return UserLoyalty::firstOrCreate(
-            ['user_id' => $this->id],
-            ['tier_id' => LoyaltyTier::getDefault()?->id, 'total_points' => 0, 'current_points' => 0]
-        );
+        return UserLoyalty::getOrCreate($this->id);
     }
 
     // Get or create default wishlist
@@ -212,7 +220,7 @@ class User extends Authenticatable
     // Get unread notifications count
     public function getUnreadNotificationsCountAttribute()
     {
-        return $this->notifications()->unread()->count();
+        return $this->panelNotifications()->unread()->count();
     }
 
     // Get loyalty tier
@@ -231,12 +239,18 @@ class User extends Authenticatable
     public function canReviewBooking(Booking $booking)
     {
         // User must be the booking owner and booking must be completed
-        if ($booking->user_id !== $this->id) return false;
-        if ($booking->status !== 1) return false; // 1 = completed
-        if ($booking->check_out > now()) return false;
-        
+        if ($booking->user_id !== $this->id) {
+            return false;
+        }
+        if ($booking->status !== 1) {
+            return false;
+        } // 1 = completed
+        if ($booking->check_out > now()) {
+            return false;
+        }
+
         // Check if already reviewed
-        return !Review::where('booking_id', $booking->id)
+        return ! Review::where('booking_id', $booking->id)
             ->where('user_id', $this->id)
             ->exists();
     }
@@ -254,10 +268,11 @@ class User extends Authenticatable
     // Generate referral code
     public function generateReferralCode()
     {
-        if (!$this->referral_code) {
-            $code = strtoupper(substr($this->name, 0, 3)) . $this->id . strtoupper(\Str::random(4));
+        if (! $this->referral_code) {
+            $code = strtoupper(substr($this->name, 0, 3)).$this->id.strtoupper(\Str::random(4));
             $this->update(['referral_code' => $code]);
         }
+
         return $this->referral_code;
     }
 
@@ -280,9 +295,9 @@ class User extends Authenticatable
     // All conversations
     public function conversations()
     {
-        return Conversation::where(function($q) {
+        return Conversation::where(function ($q) {
             $q->where('user1_id', $this->id)
-              ->orWhere('user2_id', $this->id);
+                ->orWhere('user2_id', $this->id);
         });
     }
 

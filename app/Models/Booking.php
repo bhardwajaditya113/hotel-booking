@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
+use Carbon\CarbonPeriod;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
@@ -9,6 +11,7 @@ use Illuminate\Support\Str;
 class Booking extends Model
 {
     use HasFactory;
+
     protected $guarded = [];
 
     protected $casts = [
@@ -17,6 +20,8 @@ class Booking extends Model
         'actual_check_in' => 'datetime',
         'actual_check_out' => 'datetime',
         'cancelled_at' => 'datetime',
+        'marketplace_transfer_ids' => 'array',
+        'marketplace_route_transfer_used' => 'boolean',
     ];
 
     protected static function booted()
@@ -26,16 +31,19 @@ class Booking extends Model
         });
     }
 
-    public function assign_rooms(){
-        return $this->hasMany(BookingRoomList::class,'booking_id');
+    public function assign_rooms()
+    {
+        return $this->hasMany(BookingRoomList::class, 'booking_id');
     }
 
-    public function user(){
+    public function user()
+    {
         return $this->belongsTo(User::class);
     }
 
-    public function room(){
-        return $this->belongsTo(Room::class,'rooms_id','id');
+    public function room()
+    {
+        return $this->belongsTo(Room::class, 'rooms_id', 'id');
     }
 
     // Property (hotel, home, etc.)
@@ -179,13 +187,13 @@ class Booking extends Model
 
     public function canBeReviewed()
     {
-        return $this->isCompleted() && !$this->review;
+        return $this->isCompleted() && ! $this->review;
     }
 
     // Get status label
     public function getStatusLabelAttribute()
     {
-        return match((int)$this->status) {
+        return match ((int) $this->status) {
             0 => 'Pending',
             1 => $this->isCompleted() ? 'Completed' : ($this->isOngoing() ? 'Ongoing' : 'Confirmed'),
             2 => 'Cancelled',
@@ -196,7 +204,7 @@ class Booking extends Model
     // Get status badge
     public function getStatusBadgeAttribute()
     {
-        return match((int)$this->status) {
+        return match ((int) $this->status) {
             0 => 'warning',
             1 => $this->isCompleted() ? 'success' : 'primary',
             2 => 'danger',
@@ -235,7 +243,22 @@ class Booking extends Model
     // Get formatted price
     public function getFormattedTotalAttribute()
     {
-        return '₹' . number_format($this->total_price, 2);
+        return '₹'.number_format($this->total_price, 2);
+    }
+
+    /**
+     * Label for admin lists: room type name, or linked property, or em dash.
+     */
+    public function getStayLabelAttribute(): string
+    {
+        if ($this->room?->type) {
+            return (string) $this->room->type->name;
+        }
+        if ($this->property) {
+            return (string) ($this->property->name ?? 'Property');
+        }
+
+        return '—';
     }
 
     // ==========================================
@@ -246,8 +269,8 @@ class Booking extends Model
     public function calculateRefundAmount()
     {
         $policy = $this->room?->cancellationPolicy ?? CancellationPolicy::getDefault();
-        
-        if (!$policy) {
+
+        if (! $policy) {
             return 0;
         }
 
@@ -257,7 +280,7 @@ class Booking extends Model
     // Process cancellation
     public function processCancellation($userId, $reason = null)
     {
-        if (!$this->canBeCancelled()) {
+        if (! $this->canBeCancelled()) {
             throw new \Exception('This booking cannot be cancelled');
         }
 
@@ -295,20 +318,54 @@ class Booking extends Model
     // HELPER METHODS
     // ==========================================
 
+    /**
+     * Reserve inventory for each night in [check_in, check_out).
+     */
+    public static function attachRoomBookedNights(self $booking, Room $room): void
+    {
+        $checkIn = $booking->check_in instanceof \Carbon\CarbonInterface
+            ? $booking->check_in->format('Y-m-d')
+            : date('Y-m-d', strtotime((string) $booking->check_in));
+        $checkOut = $booking->check_out instanceof \Carbon\CarbonInterface
+            ? $booking->check_out->format('Y-m-d')
+            : date('Y-m-d', strtotime((string) $booking->check_out));
+
+        $lastNight = Carbon::parse($checkOut)->copy()->subDay()->toDateString();
+        $period = CarbonPeriod::create($checkIn, $lastNight);
+
+        foreach ($period as $date) {
+            RoomBookedDate::query()->create([
+                'booking_id' => $booking->id,
+                'room_id' => $room->id,
+                'book_date' => $date->format('Y-m-d'),
+            ]);
+        }
+    }
+
+    public function awaitsHostApproval(): bool
+    {
+        return $this->host_approval_status === 'pending';
+    }
+
+    public function hostResponded(): bool
+    {
+        return in_array($this->host_approval_status, ['approved', 'declined'], true);
+    }
+
     // Generate unique booking code
     public static function generateBookingCode()
     {
-        return 'BK-' . strtoupper(Str::random(4)) . '-' . date('YmdHis') . '-' . rand(100, 999);
+        return 'BK-'.strtoupper(Str::random(4)).'-'.date('YmdHis').'-'.rand(100, 999);
     }
 
     // Award loyalty points
     public function awardLoyaltyPoints()
     {
         $userLoyalty = $this->user?->getOrCreateLoyalty();
-        
+
         if ($userLoyalty && $userLoyalty->tier) {
             $points = floor($this->total_price * ($userLoyalty->tier->earning_rate / 100));
-            
+
             if ($points > 0) {
                 $userLoyalty->addPoints(
                     $points,

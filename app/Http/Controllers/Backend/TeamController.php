@@ -127,7 +127,16 @@ class TeamController extends Controller
 
     public function BookArea(){
 
-        $book = BookArea::find(1);
+        $book = BookArea::firstOrCreate(
+            ['id' => 1],
+            [
+                'short_title' => 'Book Your Stay',
+                'main_title' => 'Find the perfect room for your trip',
+                'short_desc' => 'Manage this content from admin at any time.',
+                'link_url' => url('/rooms'),
+                'image' => 'upload/no_image.jpg',
+            ]
+        );
         return view('backend.bookarea.book_area',compact('book'));
     }  // End Method 
 

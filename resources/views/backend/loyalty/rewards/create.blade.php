@@ -67,7 +67,7 @@
                                     <option value="">Any Tier</option>
                                     @foreach($tiers as $tier)
                                     <option value="{{ $tier->id }}" {{ old('min_tier_id') == $tier->id ? 'selected' : '' }}>
-                                        {{ $tier->name }} (Level {{ $tier->level }})
+                                        {{ $tier->name }} (Tier {{ $tier->sort_order }})
                                     </option>
                                     @endforeach
                                 </select>

@@ -9,6 +9,7 @@ use App\Models\CancellationPolicy;
 use App\Models\Coupon;
 use App\Models\PricingRule;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 
 class EnhancedFeaturesController extends Controller
 {
@@ -22,14 +23,21 @@ class EnhancedFeaturesController extends Controller
     public function reviewIndex(Request $request)
     {
         $query = Review::with(['user', 'room.property', 'room.type', 'booking']);
+        $hasRejectionReason = Schema::hasColumn('reviews', 'rejection_reason');
         
         // Filter by status
         if ($request->status === 'approved') {
             $query->where('is_approved', true);
         } elseif ($request->status === 'rejected') {
-            $query->where('is_approved', false)->whereNotNull('rejection_reason');
+            $query->where('is_approved', false);
+            if ($hasRejectionReason) {
+                $query->whereNotNull('rejection_reason');
+            }
         } else {
-            $query->where('is_approved', false)->whereNull('rejection_reason');
+            $query->where('is_approved', false);
+            if ($hasRejectionReason) {
+                $query->whereNull('rejection_reason');
+            }
         }
         
         $reviews = $query->latest()->paginate(20);
@@ -73,10 +81,18 @@ class EnhancedFeaturesController extends Controller
     public function reviewReject(Request $request, $id)
     {
         $review = Review::findOrFail($id);
-        $review->update([
-            'is_approved' => false,
-            'rejection_reason' => $request->reason,
-        ]);
+        $payload = ['is_approved' => false];
+
+        if (Schema::hasColumn('reviews', 'rejection_reason')) {
+            $payload['rejection_reason'] = $request->reason;
+        }
+
+        // Backward-compatible fallback for older schema.
+        if (Schema::hasColumn('reviews', 'owner_response') && filled($request->reason)) {
+            $payload['owner_response'] = 'Rejected by admin: '.$request->reason;
+        }
+
+        $review->update($payload);
         
         return back()->with('success', 'Review rejected');
     }
@@ -91,11 +107,27 @@ class EnhancedFeaturesController extends Controller
         ]);
         
         $review = Review::findOrFail($id);
-        $review->update([
-            'manager_response' => $request->response,
-            'manager_response_at' => now(),
-            'responded_by' => auth()->id(),
-        ]);
+        $payload = [];
+
+        if (Schema::hasColumn('reviews', 'manager_response')) {
+            $payload['manager_response'] = $request->response;
+        }
+        if (Schema::hasColumn('reviews', 'manager_response_at')) {
+            $payload['manager_response_at'] = now();
+        }
+        if (Schema::hasColumn('reviews', 'responded_by')) {
+            $payload['responded_by'] = auth()->id();
+        }
+
+        // Support current schema field names.
+        if (Schema::hasColumn('reviews', 'owner_response')) {
+            $payload['owner_response'] = $request->response;
+        }
+        if (Schema::hasColumn('reviews', 'owner_response_at')) {
+            $payload['owner_response_at'] = now();
+        }
+
+        $review->update($payload);
         
         return back()->with('success', 'Response added successfully');
     }

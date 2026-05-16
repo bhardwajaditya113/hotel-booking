@@ -9,6 +9,7 @@ use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Schema;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 
@@ -58,8 +59,14 @@ class User extends Authenticatable implements CanResetPasswordContract
 
     public static function getpermissionGroups()
     {
-
-        $permission_groups = DB::table('permissions')->select('group_name')->groupBy('group_name')->get();
+        if (Schema::hasColumn('permissions', 'group_name')) {
+            $permission_groups = DB::table('permissions')
+                ->select('group_name')
+                ->groupBy('group_name')
+                ->get();
+        } else {
+            $permission_groups = collect([(object) ['group_name' => 'General']]);
+        }
 
         return $permission_groups;
 
@@ -67,11 +74,13 @@ class User extends Authenticatable implements CanResetPasswordContract
 
     public static function getpermissionByGroupName($group_name)
     {
+        $query = DB::table('permissions')->select('name', 'id');
 
-        $permissions = DB::table('permissions')
-            ->select('name', 'id')
-            ->where('group_name', $group_name)
-            ->get();
+        if (Schema::hasColumn('permissions', 'group_name')) {
+            $query->where('group_name', $group_name);
+        }
+
+        $permissions = $query->get();
 
         return $permissions;
 

@@ -42,7 +42,11 @@ class EnhancedFeaturesController extends Controller
         
         $reviews = $query->latest()->paginate(20);
         
-        $pendingCount = Review::where('is_approved', false)->whereNull('rejection_reason')->count();
+        $pendingCountQuery = Review::where('is_approved', false);
+        if ($hasRejectionReason) {
+            $pendingCountQuery->whereNull('rejection_reason');
+        }
+        $pendingCount = $pendingCountQuery->count();
         $approvedCount = Review::where('is_approved', true)->count();
         
         return view('backend.reviews.index', compact('reviews', 'pendingCount', 'approvedCount'));
@@ -150,7 +154,8 @@ class EnhancedFeaturesController extends Controller
      */
     public function rewardCreate()
     {
-        $tiers = \App\Models\LoyaltyTier::orderBy('level')->get();
+        $orderColumn = Schema::hasColumn('loyalty_tiers', 'level') ? 'level' : 'sort_order';
+        $tiers = \App\Models\LoyaltyTier::orderBy($orderColumn)->get();
         return view('backend.loyalty.rewards.create', compact('tiers'));
     }
 
@@ -206,7 +211,8 @@ class EnhancedFeaturesController extends Controller
     public function rewardEdit($id)
     {
         $reward = LoyaltyReward::findOrFail($id);
-        $tiers = \App\Models\LoyaltyTier::orderBy('level')->get();
+        $orderColumn = Schema::hasColumn('loyalty_tiers', 'level') ? 'level' : 'sort_order';
+        $tiers = \App\Models\LoyaltyTier::orderBy($orderColumn)->get();
         return view('backend.loyalty.rewards.edit', compact('reward', 'tiers'));
     }
 

@@ -31,6 +31,9 @@ return new class extends Migration
             $table->string('icon')->nullable(); // Icon class or SVG
             $table->text('description')->nullable();
             $table->boolean('is_highlighted')->default(false); // Show in search filters
+            $table->boolean('is_featured')->default(false); // Featured amenity
+            $table->boolean('is_paid')->default(false); // Paid amenity
+            $table->decimal('price', 10, 2)->nullable(); // Price if paid
             $table->boolean('is_active')->default(true);
             $table->integer('sort_order')->default(0);
             $table->timestamps();

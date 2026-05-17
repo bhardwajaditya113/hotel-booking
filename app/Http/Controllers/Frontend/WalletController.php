@@ -87,6 +87,40 @@ class WalletController extends Controller
     }
 
     /**
+     * Development-only wallet top-up bypass.
+     */
+    public function testTopUp(Request $request)
+    {
+        if (app()->environment('production')) {
+            abort(403, 'Test payment not allowed in production');
+        }
+
+        $request->validate([
+            'transaction_id' => 'required|exists:payment_transactions,id',
+        ]);
+
+        $transaction = PaymentTransaction::findOrFail($request->transaction_id);
+
+        if ($transaction->user_id !== Auth::id()) {
+            abort(403, 'Unauthorized');
+        }
+
+        if ($transaction->status === 'completed') {
+            return redirect()->route('wallet.index')->with([
+                'message' => 'This wallet top-up is already completed.',
+                'alert-type' => 'info',
+            ]);
+        }
+
+        $this->creditWallet($transaction, 'test_wallet_topup_'.time());
+
+        return redirect()->route('wallet.index')->with([
+            'message' => 'Test wallet top-up successful!',
+            'alert-type' => 'success',
+        ]);
+    }
+
+    /**
      * Process Razorpay payment
      */
     protected function processRazorpayPayment($transaction)

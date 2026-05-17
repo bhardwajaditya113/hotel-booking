@@ -28,6 +28,16 @@ Route::get('/locale/{locale}', [LocaleController::class, 'switch'])->name('local
 // });
 Route::get('/', [UserController::class, 'Index']);
 
+// Debug routes (remove in production)
+Route::get('/debug/session', function () {
+    return response()->json([
+        'session_driver' => config('session.driver'),
+        'csrf_token' => csrf_token(),
+        'session_id' => session()->getId(),
+        'session_exists' => session()->all() ? 'yes' : 'no',
+    ]);
+});
+
 // About Page
 Route::get('/about', function () {
     return view('frontend.about.about');

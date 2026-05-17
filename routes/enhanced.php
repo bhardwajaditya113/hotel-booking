@@ -85,6 +85,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/', 'index')->name('index');
         Route::get('/add-money', 'showAddMoney')->name('add-money');
         Route::post('/add-money', 'addMoney')->name('add-money.process');
+        Route::post('/test-topup', 'testTopUp')->name('test-topup');
         Route::get('/transactions', 'getTransactions')->name('transactions');
         Route::post('/statement', 'downloadStatement')->name('statement');
         

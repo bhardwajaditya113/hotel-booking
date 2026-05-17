@@ -21,11 +21,15 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('tags', function (Blueprint $table) {
+            $columns = [];
             if (Schema::hasColumn('tags', 'sort_order')) {
-                $table->dropColumn('sort_order');
+                $columns[] = 'sort_order';
             }
             if (Schema::hasColumn('tags', 'color')) {
-                $table->dropColumn('color');
+                $columns[] = 'color';
+            }
+            if (!empty($columns)) {
+                $table->dropColumn($columns);
             }
         });
     }

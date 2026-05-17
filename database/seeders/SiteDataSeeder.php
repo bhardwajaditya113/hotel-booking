@@ -2,6 +2,8 @@
 
 namespace Database\Seeders;
 
+use App\Models\Amenity;
+use App\Models\AmenityCategory;
 use App\Models\BookArea;
 use App\Models\SiteSetting;
 use Illuminate\Database\Seeder;
@@ -13,6 +15,11 @@ class SiteDataSeeder extends Seeder
      */
     public function run(): void
     {
+        // Seed Amenity Categories and Amenities
+        AmenityCategory::createDefaults();
+        Amenity::createDefaults();
+        $this->command->info('Amenity Categories and Amenities seeded!');
+
         // Seed Site Settings
         if (SiteSetting::count() === 0) {
             SiteSetting::create([

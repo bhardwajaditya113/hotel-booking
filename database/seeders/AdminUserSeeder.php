@@ -2,42 +2,54 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
 use Illuminate\Database\Seeder;
+use App\Models\User;
+use Illuminate\Support\Facades\Hash;
+use Spatie\Permission\Models\Role;
 
 class AdminUserSeeder extends Seeder
 {
     /**
-     * Plain password for seeding / `admin:create-user` (see config app.admin_password).
+     * Run the database seeds.
      */
-    public static function adminPassword(): string
-    {
-        return (string) config('app.admin_password');
-    }
-
-    /**
-     * Create or update the admin user (idempotent).
-     */
-    public static function syncAdmin(?string $email = null, ?string $name = null, ?string $password = null): User
-    {
-        $email = $email ?? config('app.admin_email');
-        $name = $name ?? config('app.admin_name');
-        $password = $password ?? self::adminPassword();
-
-        return User::updateOrCreate(
-            ['email' => $email],
-            [
-                'name' => $name,
-                'password' => $password,
-                'role' => 'admin',
-                'status' => 'active',
-            ]
-        );
-    }
-
     public function run(): void
     {
-        self::syncAdmin();
-        $this->command?->info('Admin user synced: '.config('app.admin_email'));
+        $email = env('ADMIN_EMAIL', 'admin@example.com');
+        $password = env('ADMIN_PASSWORD');
+
+        if (empty($password)) {
+            try {
+                $password = 'Adm_' . bin2hex(random_bytes(8));
+            } catch (\Exception $e) {
+                $password = 'admin1234';
+            }
+            $this->command->info('No ADMIN_PASSWORD set — generated a password for you.');
+        }
+
+        $this->command->info('Creating/updating admin user: ' . $email);
+
+        $user = User::updateOrCreate(
+            ['email' => $email],
+            [
+                'name' => 'Administrator',
+                'password' => Hash::make($password),
+                'role' => 'admin',
+                'status' => 'active',
+                'email_verified_at' => now(),
+            ]
+        );
+
+        try {
+            Role::firstOrCreate(['name' => 'admin']);
+            if (! $user->hasRole('admin')) {
+                $user->assignRole('admin');
+            }
+        } catch (\Throwable $e) {
+            $this->command->warn('Could not assign role: ' . $e->getMessage());
+        }
+
+        $this->command->info('Admin user created/updated. Email: ' . $email);
+        $this->command->line('Password: ' . $password);
     }
 }
+

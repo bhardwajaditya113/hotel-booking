@@ -30,6 +30,7 @@ Route::controller(SearchController::class)->group(function () {
     Route::post('/search/quick', 'quickSearch')->name('search.quick');
     Route::get('/search/filter-counts', 'filterCounts')->name('search.filter-counts');
     Route::get('/rooms/compare', 'compare')->name('rooms.compare');
+    Route::get('/search/map', 'mapView')->name('search.map');
     Route::get('/rooms/map', 'mapView')->name('rooms.map');
 });
 

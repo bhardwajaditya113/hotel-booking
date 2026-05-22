@@ -196,8 +196,8 @@
                                         </div>
                                         <div class="text-end">
                                             @php
-                                                $avgRating = $property->average_rating ?? ($property->reviews->count() > 0 ? $property->reviews->avg('overall_rating') : 0);
-                                                $reviewCount = $property->reviews->count();
+                                                $avgRating = $property->reviews_avg_rating ?? 0;
+                                                $reviewCount = $property->reviews_count ?? 0;
                                             @endphp
                                             @if($avgRating > 0)
                                             <div class="d-flex align-items-center justify-content-end gap-1 mb-2">
@@ -216,8 +216,8 @@
                                     <div class="d-flex justify-content-between align-items-center mt-auto pt-3 border-top">
                                         <div>
                                             @php
-                                                $minPrice = $property->activeRooms->min('price') ?? 0;
-                                                $maxPrice = $property->activeRooms->max('price') ?? 0;
+                                                $minPrice = $property->active_rooms_min_price ?? 0;
+                                                $maxPrice = $property->active_rooms_max_price ?? 0;
                                             @endphp
                                             @if($minPrice > 0)
                                             <div>

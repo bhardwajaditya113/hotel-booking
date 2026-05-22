@@ -12,6 +12,7 @@ use App\Models\Room;
 use App\Models\RoomType;
 use App\Models\Tag;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class SearchController extends Controller
 {
@@ -20,25 +21,21 @@ class SearchController extends Controller
      */
     public function index(Request $request)
     {
-        $amenityCategories = AmenityCategory::active()
-            ->with('activeAmenities')
-            ->ordered()
-            ->get();
+        $payload = Cache::remember('search:index:options', now()->addHour(), function () {
+            return [
+                'amenityCategories' => AmenityCategory::active()->with('activeAmenities')->ordered()->get(),
+                'tags' => Tag::active()->ordered()->get(),
+                'roomTypes' => RoomType::all(),
+                'propertyTypes' => PropertyType::all(),
+                'facilities' => Facility::all(),
+                'priceRange' => [
+                    'min' => Room::active()->min('price') ?? 0,
+                    'max' => Room::active()->max('price') ?? 50000,
+                ],
+            ];
+        });
 
-        $tags = Tag::active()->ordered()->get();
-        $roomTypes = RoomType::all();
-        $propertyTypes = PropertyType::all();
-        $facilities = Facility::all();
-
-        // Price range
-        $priceRange = [
-            'min' => Room::active()->min('price') ?? 0,
-            'max' => Room::active()->max('price') ?? 50000,
-        ];
-
-        return view('frontend.search.index', compact(
-            'amenityCategories', 'tags', 'roomTypes', 'propertyTypes', 'facilities', 'priceRange'
-        ));
+        return view('frontend.search.index', $payload);
     }
 
     /**
@@ -222,7 +219,7 @@ class SearchController extends Controller
      */
     private function searchProperties(Request $request)
     {
-        $query = Property::with(['type', 'host.hostProfile', 'activeRooms'])
+        $query = Property::with(['type', 'host.hostProfile'])
             ->active();
 
         // Only filter by verified if explicitly requested
@@ -348,26 +345,42 @@ class SearchController extends Controller
                     ->orderBy('created_at', 'desc');
         }
 
+        $query->withCount([
+            'reviews as reviews_count',
+            'activeRooms as active_rooms_count',
+        ])->withAvg('reviews as reviews_avg_rating', 'rating_overall')
+            ->withMin('activeRooms as active_rooms_min_price', 'price')
+            ->withMax('activeRooms as active_rooms_max_price', 'price');
+
         $properties = $query->paginate(12);
 
+        $wishlistedPropertyIds = collect();
+        if (auth()->check()) {
+            $wishlistedPropertyIds = auth()->user()->wishlists()
+                ->with(['items.room:id,property_id'])
+                ->get()
+                ->pluck('items')
+                ->flatten()
+                ->pluck('room.property_id')
+                ->filter()
+                ->unique()
+                ->values();
+        }
+
         // Add computed properties
-        $properties->getCollection()->transform(function ($property) use ($request) {
-            $property->min_price = $property->activeRooms->min('price') ?? 0;
-            $property->max_price = $property->activeRooms->max('price') ?? 0;
-            $property->available_rooms_count = $property->activeRooms->count();
+        $properties->getCollection()->transform(function ($property) use ($request, $wishlistedPropertyIds) {
+            $property->min_price = $property->active_rooms_min_price ?? 0;
+            $property->max_price = $property->active_rooms_max_price ?? 0;
+            $property->available_rooms_count = $property->active_rooms_count ?? 0;
+            $property->review_count = $property->reviews_count ?? 0;
+            $property->average_rating_value = round((float) ($property->reviews_avg_rating ?? 0), 1);
 
             if ($request->check_in && $request->check_out) {
-                $property->available_rooms = $property->activeRooms->filter(function ($room) use ($request) {
-                    return $room->isAvailable($request->check_in, $request->check_out);
-                });
+                $property->available_rooms = collect();
             }
 
             $property->is_wishlisted = auth()->check()
-                ? auth()->user()->wishlists()->whereHas('items', function ($q) use ($property) {
-                    $q->whereHas('room', function ($q2) use ($property) {
-                        $q2->where('property_id', $property->id);
-                    });
-                })->exists()
+                ? $wishlistedPropertyIds->contains($property->id)
                 : false;
 
             return $property;
@@ -471,58 +484,57 @@ class SearchController extends Controller
      */
     public function filterCounts(Request $request)
     {
-        $baseQuery = Room::active();
+        $cacheKey = 'search:filter-counts:'.md5(json_encode($request->only(['check_in', 'check_out'])));
 
-        // Apply base filters
-        if ($request->check_in && $request->check_out) {
-            $baseQuery->availableBetween($request->check_in, $request->check_out);
-        }
+        return Cache::remember($cacheKey, now()->addMinutes(30), function () use ($request) {
+            $baseQuery = Room::active();
 
-        // Count by room type
-        $typeCounts = [];
-        foreach (RoomType::all() as $type) {
-            $typeCounts[$type->id] = (clone $baseQuery)
-                ->where('roomtype_id', $type->id)
-                ->count();
-        }
+            if ($request->check_in && $request->check_out) {
+                $baseQuery->availableBetween($request->check_in, $request->check_out);
+            }
 
-        // Count by amenity
-        $amenityCounts = [];
-        foreach (Amenity::active()->get() as $amenity) {
-            $amenityCounts[$amenity->id] = (clone $baseQuery)
-                ->whereHas('amenities', function ($q) use ($amenity) {
-                    $q->where('amenity_id', $amenity->id);
-                })
-                ->count();
-        }
+            $typeCounts = [];
+            foreach (RoomType::all() as $type) {
+                $typeCounts[$type->id] = (clone $baseQuery)
+                    ->where('roomtype_id', $type->id)
+                    ->count();
+            }
 
-        // Count by price range
-        $priceCounts = [
-            'under_2000' => (clone $baseQuery)->where('price', '<', 2000)->count(),
-            '2000_5000' => (clone $baseQuery)->whereBetween('price', [2000, 5000])->count(),
-            '5000_10000' => (clone $baseQuery)->whereBetween('price', [5000, 10000])->count(),
-            'above_10000' => (clone $baseQuery)->where('price', '>', 10000)->count(),
-        ];
+            $amenityCounts = [];
+            foreach (Amenity::active()->get() as $amenity) {
+                $amenityCounts[$amenity->id] = (clone $baseQuery)
+                    ->whereHas('amenities', function ($q) use ($amenity) {
+                        $q->where('amenity_id', $amenity->id);
+                    })
+                    ->count();
+            }
 
-        // Count by rating
-        $ratingCounts = [];
-        for ($rating = 3; $rating <= 5; $rating++) {
-            $ratingCounts[$rating] = (clone $baseQuery)
-                ->whereHas('reviews', function ($q) use ($rating) {
-                    $q->approved()
-                        ->groupBy('room_id')
-                        ->havingRaw('AVG(rating_overall) >= ?', [$rating]);
-                })
-                ->count();
-        }
+            $priceCounts = [
+                'under_2000' => (clone $baseQuery)->where('price', '<', 2000)->count(),
+                '2000_5000' => (clone $baseQuery)->whereBetween('price', [2000, 5000])->count(),
+                '5000_10000' => (clone $baseQuery)->whereBetween('price', [5000, 10000])->count(),
+                'above_10000' => (clone $baseQuery)->where('price', '>', 10000)->count(),
+            ];
 
-        return response()->json([
-            'types' => $typeCounts,
-            'amenities' => $amenityCounts,
-            'prices' => $priceCounts,
-            'ratings' => $ratingCounts,
-            'total' => $baseQuery->count(),
-        ]);
+            $ratingCounts = [];
+            for ($rating = 3; $rating <= 5; $rating++) {
+                $ratingCounts[$rating] = (clone $baseQuery)
+                    ->whereHas('reviews', function ($q) use ($rating) {
+                        $q->approved()
+                            ->groupBy('room_id')
+                            ->havingRaw('AVG(rating_overall) >= ?', [$rating]);
+                    })
+                    ->count();
+            }
+
+            return response()->json([
+                'types' => $typeCounts,
+                'amenities' => $amenityCounts,
+                'prices' => $priceCounts,
+                'ratings' => $ratingCounts,
+                'total' => $baseQuery->count(),
+            ]);
+        });
     }
 
     /**
@@ -561,64 +573,73 @@ class SearchController extends Controller
      */
     public function mapView(Request $request)
     {
-        $query = Property::query()
-            ->active()
-            ->whereNotNull('latitude')
-            ->whereNotNull('longitude')
-            ->with(['type', 'activeRooms', 'reviews']);
+        $cacheKey = 'search:map:'.md5(json_encode($request->only(['city', 'listing_type', 'latitude', 'longitude', 'radius'])));
 
-        if ($request->filled('city')) {
-            $c = $request->city;
-            $query->where(function ($q) use ($c) {
-                $q->where('city', 'like', '%'.$c.'%')
-                    ->orWhere('state', 'like', '%'.$c.'%')
-                    ->orWhere('country', 'like', '%'.$c.'%')
-                    ->orWhere('name', 'like', '%'.$c.'%');
-            });
-        }
+        $payload = Cache::remember($cacheKey, now()->addMinutes(20), function () use ($request) {
+            $query = Property::query()
+                ->active()
+                ->whereNotNull('latitude')
+                ->whereNotNull('longitude')
+                ->with(['type'])
+                ->withCount([
+                    'reviews as reviews_count',
+                    'activeRooms as active_rooms_count',
+                ])->withAvg('reviews as reviews_avg_rating', 'rating_overall')
+                ->withMin('activeRooms as active_rooms_min_price', 'price');
 
-        if ($request->filled('listing_type')) {
-            $query->where('listing_type', $request->listing_type);
-        }
+            if ($request->filled('city')) {
+                $c = $request->city;
+                $query->where(function ($q) use ($c) {
+                    $q->where('city', 'like', '%'.$c.'%')
+                        ->orWhere('state', 'like', '%'.$c.'%')
+                        ->orWhere('country', 'like', '%'.$c.'%')
+                        ->orWhere('name', 'like', '%'.$c.'%');
+                });
+            }
 
-        if ($request->filled('latitude') && $request->filled('longitude')) {
-            $query->nearLocation(
-                $request->latitude,
-                $request->longitude,
-                (int) ($request->radius ?? config('nexstay.maps.search_default_radius_km', 50))
-            );
-        }
+            if ($request->filled('listing_type')) {
+                $query->where('listing_type', $request->listing_type);
+            }
 
-        $properties = $query->orderByDesc('is_featured')->limit(200)->get();
+            if ($request->filled('latitude') && $request->filled('longitude')) {
+                $query->nearLocation(
+                    $request->latitude,
+                    $request->longitude,
+                    (int) ($request->radius ?? config('nexstay.maps.search_default_radius_km', 50))
+                );
+            }
 
-        $markers = $properties->map(function (Property $p) {
-            $min = $p->activeRooms->min('price');
+            $properties = $query->orderByDesc('is_featured')->limit(200)->get();
+
+            $markers = $properties->map(function (Property $p) {
+                return [
+                    'id' => $p->id,
+                    'name' => $p->name,
+                    'city' => $p->city,
+                    'lat' => (float) $p->latitude,
+                    'lng' => (float) $p->longitude,
+                    'min_price' => $p->active_rooms_min_price ? (float) $p->active_rooms_min_price : null,
+                    'rating' => (float) ($p->reviews_avg_rating ?? 0),
+                    'url' => route('property.show', $p->id),
+                    'image' => $p->cover_image_url,
+                ];
+            })->values();
+
+            $center = config('nexstay.maps.default_center');
+            if ($markers->isNotEmpty()) {
+                $center = [
+                    'lat' => round($markers->avg('lat'), 5),
+                    'lng' => round($markers->avg('lng'), 5),
+                ];
+            }
 
             return [
-                'id' => $p->id,
-                'name' => $p->name,
-                'city' => $p->city,
-                'lat' => (float) $p->latitude,
-                'lng' => (float) $p->longitude,
-                'min_price' => $min ? (float) $min : null,
-                'rating' => (float) ($p->average_rating ?? 0),
-                'url' => route('property.show', $p->id),
-                'image' => $p->cover_image_url,
+                'markers' => $markers,
+                'center' => $center,
+                'mapZoom' => $markers->count() === 1 ? 12 : 6,
             ];
-        })->values();
+        });
 
-        $center = config('nexstay.maps.default_center');
-        if ($markers->isNotEmpty()) {
-            $center = [
-                'lat' => round($markers->avg('lat'), 5),
-                'lng' => round($markers->avg('lng'), 5),
-            ];
-        }
-
-        return view('frontend.search.map', [
-            'markers' => $markers,
-            'center' => $center,
-            'mapZoom' => $markers->count() === 1 ? 12 : 6,
-        ]);
+        return view('frontend.search.map', $payload);
     }
 }

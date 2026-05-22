@@ -264,13 +264,13 @@ class CancellationController extends Controller
      */
     public function policies()
     {
-        logger()->info('cancellation.policies.start');
+        logger()->warning('cancellation.policies.start');
 
         $policies = CancellationPolicy::active()
             ->orderBy('name')
             ->get();
 
-        logger()->info('cancellation.policies.view.render', [
+        logger()->warning('cancellation.policies.view.render', [
             'count' => $policies->count(),
         ]);
 

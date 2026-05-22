@@ -14,16 +14,22 @@ class AdminUserSeeder extends Seeder
      */
     public function run(): void
     {
-        $email = env('ADMIN_EMAIL', 'admin@example.com');
-        $password = env('ADMIN_PASSWORD');
+        // In testing, seed a predictable admin account so tests can authenticate
+        if (app()->environment('testing')) {
+            $email = env('ADMIN_EMAIL', 'admin@gmail.com');
+            $password = env('ADMIN_PASSWORD', '111');
+        } else {
+            $email = env('ADMIN_EMAIL', 'admin@gmail.com');
+            $password = env('ADMIN_PASSWORD');
 
-        if (empty($password)) {
-            try {
-                $password = 'Adm_' . bin2hex(random_bytes(8));
-            } catch (\Exception $e) {
-                $password = 'admin1234';
+            if (empty($password)) {
+                try {
+                    $password = 'Adm_' . bin2hex(random_bytes(8));
+                } catch (\Exception $e) {
+                    $password = 'admin1234';
+                }
+                $this->command->info('No ADMIN_PASSWORD set — generated a password for you.');
             }
-            $this->command->info('No ADMIN_PASSWORD set — generated a password for you.');
         }
 
         $this->command->info('Creating/updating admin user: ' . $email);

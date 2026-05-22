@@ -49,12 +49,13 @@
                         </p>
                     </div>
 @php
-    $comment = App\Models\Comment::where('post_id',$blog->id)->where('status','1')->limit(5)->get();
+    // Comments are provided by the controller in $comments
+    $comments = $comments ?? collect();
 @endphp
                     <div class="comments-wrap">
                         <h3 class="title">{{ __('frontend.blog.comments_title') }}</h3>
                         <ul>
-                            @foreach ($comment as $com) 
+                            @foreach ($comments as $com) 
                             <li>
                                 <img src="{{ (!empty($com->user->photo)) ? url('upload/user_images/'.$com->user->photo) : url('upload/no_image.jpg') }}" alt="Image" style="width: 50px; height:50px;">
                                 <h3>{{ $com->user->name }}</h3>
@@ -73,13 +74,8 @@
                         <div class="contact-form">
       
                             <h2>{{ __('frontend.blog.leave_comment') }}</h2>
-    @php 
-        if (Auth::check()) {
-           $id = Auth::user()->id;
-           $userData = App\Models\User::find($id);
-        }else {
-            $userData = null;
-        }
+    @php
+        $userData = Auth::user();
     @endphp
 
     @auth            

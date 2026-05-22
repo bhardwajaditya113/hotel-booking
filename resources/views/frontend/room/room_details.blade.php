@@ -29,8 +29,7 @@
                         
                         @php
                             $room_id = $roomdetails->id;
-                            $room = App\Models\Room::find($room_id);
-                            $room_numbers_count = App\Models\RoomNumber::where('rooms_id', $room_id)->where('status', 'Active')->count();
+                            $room_numbers_count = $room_numbers_count ?? 0;
                         @endphp
                         
                         <form method="POST" action="{{ route('user_booking_store') }}">

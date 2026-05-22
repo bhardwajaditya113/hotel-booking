@@ -223,7 +223,14 @@ class BlogController extends Controller
         $bcategory = BlogCategory::latest()->get();
         $lpost = BlogPost::latest()->limit(3)->get();
 
-        return view('frontend.blog.blog_details', compact('blog', 'bcategory', 'lpost'));
+        // Load recent approved comments for this blog post to avoid querying from the view
+        $comments = \App\Models\Comment::where('post_id', $blog->id)
+            ->where('status', '1')
+            ->orderBy('created_at', 'desc')
+            ->limit(5)
+            ->get();
+
+        return view('frontend.blog.blog_details', compact('blog', 'bcategory', 'lpost', 'comments'));
 
     }// End Method
 

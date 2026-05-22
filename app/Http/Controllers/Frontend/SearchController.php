@@ -416,7 +416,22 @@ class SearchController extends Controller
         }
 
         logger()->warning('search.properties.view.render');
-        return view('frontend.search.properties-results', compact('properties'));
+        // Provide cached index options (property types, room types, amenities, etc.)
+        $options = Cache::remember('search:index:options', now()->addHour(), function () {
+            return [
+                'amenityCategories' => AmenityCategory::active()->with('activeAmenities')->ordered()->get(),
+                'tags' => Tag::active()->ordered()->get(),
+                'roomTypes' => RoomType::all(),
+                'propertyTypes' => PropertyType::all(),
+                'facilities' => Facility::all(),
+                'priceRange' => [
+                    'min' => Room::active()->min('price') ?? 0,
+                    'max' => Room::active()->max('price') ?? 50000,
+                ],
+            ];
+        });
+
+        return view('frontend.search.properties-results', array_merge(['properties' => $properties], $options));
     }
 
     /**

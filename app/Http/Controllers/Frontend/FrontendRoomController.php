@@ -30,7 +30,27 @@ class FrontendRoomController extends Controller
         $facility = Facility::where('rooms_id',$id)->get();
 
         $otherRooms = Room::where('id','!=', $id)->orderBy('id','DESC')->limit(2)->get();
-        return view('frontend.room.room_details',compact('roomdetails','multiImage','facility','otherRooms'));
+        // Determine any date filters passed in query string
+        $checkIn = request()->query('check_in');
+        $checkOut = request()->query('check_out');
+
+        // Compute active pricing rule once in the controller to avoid DB in the view
+        $activePricingRule = \App\Models\PricingRule::where('is_active', true)
+            ->where(function($q) use ($checkIn) {
+                $q->whereNull('start_date')
+                  ->orWhere('start_date', '<=', $checkIn ?? now());
+            })
+            ->where(function($q) use ($checkOut) {
+                $q->whereNull('end_date')
+                  ->orWhere('end_date', '>=', $checkOut ?? now());
+            })
+            ->orderBy('priority', 'desc')
+            ->first();
+
+        // Compute simple availability stat used by the booking form
+        $room_numbers_count = \App\Models\RoomNumber::where('rooms_id', $id)->where('status', 'Active')->count();
+
+        return view('frontend.room.room_details',compact('roomdetails','multiImage','facility','otherRooms','checkIn','checkOut','activePricingRule','room_numbers_count'));
 
     } // End Method 
 
@@ -62,7 +82,29 @@ class FrontendRoomController extends Controller
 
         $rooms = Room::withCount('room_numbers')->where('status',1)->get();
 
-        return view('frontend.room.search_room',compact('rooms','check_date_booking_ids'));
+        // Precompute availability per room to avoid DB queries in the view
+        $availability = [];
+        if (count($check_date_booking_ids) > 0) {
+            $bookingCounts = \App\Models\Booking::withCount('assign_rooms')
+                ->whereIn('id', $check_date_booking_ids)
+                ->whereIn('rooms_id', $rooms->pluck('id')->toArray())
+                ->get()
+                ->groupBy('rooms_id')
+                ->map(function ($group) {
+                    return array_sum($group->pluck('assign_rooms_count')->toArray());
+                })->toArray();
+
+            foreach ($rooms as $r) {
+                $booked = $bookingCounts[$r->id] ?? 0;
+                $availability[$r->id] = max(0, ($r->room_numbers_count ?? 0) - $booked);
+            }
+        } else {
+            foreach ($rooms as $r) {
+                $availability[$r->id] = $r->room_numbers_count ?? 0;
+            }
+        }
+
+        return view('frontend.room.search_room', compact('rooms', 'check_date_booking_ids'))->with('roomAvailability', $availability);
 
     } // End Method 
 
@@ -75,7 +117,23 @@ class FrontendRoomController extends Controller
 
         $otherRooms = Room::where('id','!=', $id)->orderBy('id','DESC')->limit(2)->get();
         $room_id = $id;
-        return view('frontend.room.search_room_details',compact('roomdetails','multiImage','facility','otherRooms','room_id'));
+        $room_numbers_count = \App\Models\RoomNumber::where('rooms_id', $id)->where('status', 'Active')->count();
+        $checkIn = $request->query('check_in');
+        $checkOut = $request->query('check_out');
+
+        $activePricingRule = \App\Models\PricingRule::where('is_active', true)
+            ->where(function($q) use ($checkIn) {
+                $q->whereNull('start_date')
+                  ->orWhere('start_date', '<=', $checkIn ?? now());
+            })
+            ->where(function($q) use ($checkOut) {
+                $q->whereNull('end_date')
+                  ->orWhere('end_date', '>=', $checkOut ?? now());
+            })
+            ->orderBy('priority', 'desc')
+            ->first();
+
+        return view('frontend.room.search_room_details',compact('roomdetails','multiImage','facility','otherRooms','room_id','checkIn','checkOut','activePricingRule','room_numbers_count'));
 
     }// End Method 
 

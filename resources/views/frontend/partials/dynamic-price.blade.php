@@ -16,18 +16,8 @@
         $discountPercent = 0;
     }
     
-    // Check for active pricing rules
-    $activePricingRule = \App\Models\PricingRule::where('is_active', true)
-        ->where(function($q) use ($checkIn) {
-            $q->whereNull('start_date')
-              ->orWhere('start_date', '<=', $checkIn ?? now());
-        })
-        ->where(function($q) use ($checkOut) {
-            $q->whereNull('end_date')
-              ->orWhere('end_date', '>=', $checkOut ?? now());
-        })
-        ->orderBy('priority', 'desc')
-        ->first();
+        // Controller may provide $activePricingRule; fall back to null
+        $activePricingRule = $activePricingRule ?? null;
 @endphp
 
 <div class="price-display">

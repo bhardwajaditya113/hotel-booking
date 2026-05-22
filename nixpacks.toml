@@ -1,2 +1,8 @@
 [phases.release]
-cmd = "echo 'Skipping migrations in build'"
+cmd = "php artisan migrate --force && php artisan cache:clear && php artisan config:clear && php artisan route:clear"
+
+[build]
+cmds = ["composer install --no-dev"]
+
+[start]
+cmd = "vendor/bin/heroku-php-apache2 public/"

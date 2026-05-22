@@ -1,5 +1,5 @@
 @php
-    $bookarea = App\Models\BookArea::find(1);
+    $bookarea = null;
 @endphp
 
 @if($bookarea)

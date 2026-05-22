@@ -1,5 +1,5 @@
 @php
-    $blog = App\Models\BlogPost::latest()->limit(3)->get();
+    $blog = collect();
 @endphp
 <div class="blog-area pt-100 pb-70">
     <div class="container">

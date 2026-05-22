@@ -1,5 +1,5 @@
 @php
-    $team = App\Models\Team::latest()->get();
+    $team = collect();
 @endphp
 
 <div class="team-area-three pt-100 pb-70">

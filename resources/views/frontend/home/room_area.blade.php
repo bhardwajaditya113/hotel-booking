@@ -1,5 +1,5 @@
 @php
-    $room = App\Models\Room::latest()->limit(4)->get();
+    $room = collect();
 @endphp
 <div class="room-area pt-100 pb-70 section-bg" style="background-color:#ffffff">
     <div class="container">

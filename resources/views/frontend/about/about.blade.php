@@ -69,9 +69,7 @@
             <h2>{{ __('frontend.about.team_heading') }}</h2>
         </div>
 
-        @php
-            $teams = App\Models\Team::latest()->limit(4)->get();
-        @endphp
+        @php $teams = collect(); @endphp
 
         @if($teams->count() > 0)
         <div class="row pt-45">

@@ -216,14 +216,7 @@
             </a>
         </div>
         <div class="row g-4">
-            @php
-                $featuredProperties = \App\Models\Property::featured()
-                    ->active()
-                    ->verified()
-                    ->with(['type', 'activeRooms', 'reviews'])
-                    ->take(6)
-                    ->get();
-            @endphp
+            @php $featuredProperties = collect(); @endphp
             @forelse($featuredProperties as $property)
             <div class="col-lg-4 col-md-6">
                 <div class="property-card border-0 shadow-sm rounded-4 overflow-hidden h-100 hover-lift">

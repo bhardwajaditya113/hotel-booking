@@ -10,6 +10,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rules;
 use Illuminate\View\View;
 
@@ -30,22 +31,40 @@ class RegisteredUserController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        $request->validate([
+        $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:'.User::class],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-        ]);
+        try {
+            $user = User::create([
+                'name' => $validated['name'],
+                'email' => $validated['email'],
+                'password' => Hash::make($validated['password']),
+                'role' => 'user',
+                'status' => 'active',
+                'email_verified_at' => null,
+            ]);
 
-        event(new Registered($user));
+            event(new Registered($user));
 
-        Auth::login($user);
+            Auth::login($user);
+            $request->session()->regenerate();
 
-        return redirect(RouteServiceProvider::HOME);
+            return redirect(RouteServiceProvider::HOME)->with([
+                'message' => 'Registration successful! Welcome to '.config('app.name', 'Elapse').'.',
+                'alert-type' => 'success',
+            ]);
+        } catch (\Throwable $exception) {
+            Log::error('Registration failed', [
+                'email' => $validated['email'] ?? $request->email,
+                'error' => $exception->getMessage(),
+            ]);
+
+            return back()
+                ->withInput($request->except('password', 'password_confirmation'))
+                ->withErrors(['email' => 'Registration failed. Please try again.']);
+        }
     }
 }

@@ -58,7 +58,7 @@
                     <div class="mb-6">
                         <h4 class="font-medium mb-3">{{ __('frontend.search.property_type') }}</h4>
                         <div class="space-y-2">
-                            @foreach(\App\Models\PropertyType::all() as $ptype)
+                            @foreach($propertyTypes as $ptype)
                             <label class="flex items-center">
                                 <input type="radio" name="property_type" value="{{ $ptype->id }}" 
                                        {{ request('property_type') == $ptype->id ? 'checked' : '' }}

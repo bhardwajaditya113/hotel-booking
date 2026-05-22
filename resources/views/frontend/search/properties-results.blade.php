@@ -40,7 +40,7 @@
                         <label class="form-label fw-bold mb-2">{{ __('frontend.search.property_type') }}</label>
                         <select name="property_type" class="form-select">
                             <option value="">{{ __('frontend.search.prop_all_types') }}</option>
-                            @foreach(\App\Models\PropertyType::all() as $type)
+                            @foreach($propertyTypes as $type)
                             <option value="{{ $type->id }}" {{ request('property_type') == $type->id ? 'selected' : '' }}>
                                 {{ $type->name }}
                             </option>

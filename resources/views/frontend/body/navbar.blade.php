@@ -1,5 +1,5 @@
 @php
-    $setting = App\Models\SiteSetting::query()->first();
+    $setting = null;
     $brand = config('app.name', 'Elapse');
 @endphp
 

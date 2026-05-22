@@ -91,7 +91,7 @@
 <!-- Contact Area End -->
 
 @php
-    $setting = App\Models\SiteSetting::query()->first();
+    $setting = null;
 @endphp
 
 <!-- contact Another -->

@@ -1,6 +1,6 @@
 
 @php
-    $setting = App\Models\SiteSetting::query()->first();
+    $setting = null;
     $supported = config('locales.supported', ['en']);
     $labels = config('locales.labels', []);
 @endphp

@@ -44,6 +44,12 @@ class SearchController extends Controller
      */
     public function search(Request $request)
     {
+        logger()->info('search.results.start', [
+            'mode' => $request->get('search_mode', 'rooms'),
+            'path' => $request->path(),
+            'query' => $request->query(),
+        ]);
+
         // Determine search mode: 'properties' or 'rooms' (default: rooms for backward compatibility)
         $searchMode = $request->get('search_mode', 'rooms');
 
@@ -219,6 +225,10 @@ class SearchController extends Controller
      */
     private function searchProperties(Request $request)
     {
+        logger()->info('search.properties.query.start', [
+            'filters' => $request->only(['city', 'state', 'country', 'listing_type', 'property_type', 'min_price', 'max_price', 'min_rating', 'sort', 'latitude', 'longitude', 'radius', 'check_in', 'check_out']),
+        ]);
+
         $query = Property::with(['type', 'host.hostProfile'])
             ->active();
 
@@ -354,6 +364,11 @@ class SearchController extends Controller
 
         $properties = $query->paginate(12);
 
+        logger()->info('search.properties.query.done', [
+            'count' => $properties->count(),
+            'total' => $properties->total(),
+        ]);
+
         $wishlistedPropertyIds = collect();
         if (auth()->check()) {
             $wishlistedPropertyIds = auth()->user()->wishlists()
@@ -387,6 +402,7 @@ class SearchController extends Controller
         });
 
         if ($request->ajax()) {
+            logger()->info('search.properties.ajax.render');
             return response()->json([
                 'properties' => $properties->items(),
                 'pagination' => [
@@ -399,6 +415,7 @@ class SearchController extends Controller
             ]);
         }
 
+        logger()->info('search.properties.view.render');
         return view('frontend.search.properties-results', compact('properties'));
     }
 
@@ -573,9 +590,14 @@ class SearchController extends Controller
      */
     public function mapView(Request $request)
     {
+        logger()->info('search.map.start', [
+            'query' => $request->query(),
+        ]);
+
         $cacheKey = 'search:map:'.md5(json_encode($request->only(['city', 'listing_type', 'latitude', 'longitude', 'radius'])));
 
         $payload = Cache::remember($cacheKey, now()->addMinutes(20), function () use ($request) {
+            logger()->info('search.map.cache.miss');
             $query = Property::query()
                 ->active()
                 ->whereNotNull('latitude')
@@ -640,6 +662,9 @@ class SearchController extends Controller
             ];
         });
 
+        logger()->info('search.map.view.render', [
+            'markers' => $payload['markers']->count(),
+        ]);
         return view('frontend.search.map', $payload);
     }
 }

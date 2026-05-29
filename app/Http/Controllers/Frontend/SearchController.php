@@ -16,6 +16,13 @@ use Illuminate\Support\Facades\Cache;
 
 class SearchController extends Controller
 {
+    private function trace(string $message, array $context = []): void
+    {
+        if (app()->environment(['local', 'testing'])) {
+            logger()->warning($message, $context);
+        }
+    }
+
     /**
      * Advanced search page
      */
@@ -44,7 +51,7 @@ class SearchController extends Controller
      */
     public function search(Request $request)
     {
-        logger()->warning('search.results.start', [
+        $this->trace('search.results.start', [
             'mode' => $request->get('search_mode', 'rooms'),
             'path' => $request->path(),
             'query' => $request->query(),
@@ -225,7 +232,7 @@ class SearchController extends Controller
      */
     private function searchProperties(Request $request)
     {
-        logger()->warning('search.properties.query.start', [
+        $this->trace('search.properties.query.start', [
             'filters' => $request->only(['city', 'state', 'country', 'listing_type', 'property_type', 'min_price', 'max_price', 'min_rating', 'sort', 'latitude', 'longitude', 'radius', 'check_in', 'check_out']),
         ]);
 
@@ -364,7 +371,7 @@ class SearchController extends Controller
 
         $properties = $query->paginate(12);
 
-        logger()->warning('search.properties.query.done', [
+        $this->trace('search.properties.query.done', [
             'count' => $properties->count(),
             'total' => $properties->total(),
         ]);
@@ -402,7 +409,7 @@ class SearchController extends Controller
         });
 
         if ($request->ajax()) {
-            logger()->warning('search.properties.ajax.render');
+            $this->trace('search.properties.ajax.render');
             return response()->json([
                 'properties' => $properties->items(),
                 'pagination' => [
@@ -415,7 +422,7 @@ class SearchController extends Controller
             ]);
         }
 
-        logger()->warning('search.properties.view.render');
+        $this->trace('search.properties.view.render');
         // Provide cached index options (property types, room types, amenities, etc.)
         $options = Cache::remember('search:index:options', now()->addHour(), function () {
             return [
@@ -605,14 +612,14 @@ class SearchController extends Controller
      */
     public function mapView(Request $request)
     {
-        logger()->warning('search.map.start', [
+        $this->trace('search.map.start', [
             'query' => $request->query(),
         ]);
 
         $cacheKey = 'search:map:'.md5(json_encode($request->only(['city', 'listing_type', 'latitude', 'longitude', 'radius'])));
 
         $payload = Cache::remember($cacheKey, now()->addMinutes(20), function () use ($request) {
-            logger()->warning('search.map.cache.miss');
+            $this->trace('search.map.cache.miss');
             $query = Property::query()
                 ->active()
                 ->whereNotNull('latitude')
@@ -677,7 +684,7 @@ class SearchController extends Controller
             ];
         });
 
-        logger()->warning('search.map.view.render', [
+        $this->trace('search.map.view.render', [
             'markers' => $payload['markers']->count(),
         ]);
         return view('frontend.search.map', $payload);

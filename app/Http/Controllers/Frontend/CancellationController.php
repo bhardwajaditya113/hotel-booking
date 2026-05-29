@@ -13,6 +13,13 @@ use Razorpay\Api\Api;
 
 class CancellationController extends Controller
 {
+    private function trace(string $message, array $context = []): void
+    {
+        if (app()->environment(['local', 'testing'])) {
+            logger()->warning($message, $context);
+        }
+    }
+
     /**
      * Show cancellation form
      */
@@ -264,13 +271,13 @@ class CancellationController extends Controller
      */
     public function policies()
     {
-        logger()->warning('cancellation.policies.start');
+        $this->trace('cancellation.policies.start');
 
         $policies = CancellationPolicy::active()
             ->orderBy('name')
             ->get();
 
-        logger()->warning('cancellation.policies.view.render', [
+        $this->trace('cancellation.policies.view.render', [
             'count' => $policies->count(),
         ]);
 

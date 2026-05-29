@@ -1,3 +1,7 @@
-[phases.release]
-[build]
+[phases.setup]
+nixPkgs = ["php83", "php83Packages.pdo_pgsql", "php83Packages.gd", "php83Packages.curl", "php83Packages.zip", "php83Packages.openssl", "php83Packages.mbstring", "php83Packages.pdo_mysql"]
+
+[phases.build]
 cmds = ["composer install --no-dev"]
+
+[phases.release]

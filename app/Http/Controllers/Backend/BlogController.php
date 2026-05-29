@@ -216,7 +216,7 @@ class BlogController extends Controller
 
     public function BlogDetails($slug)
     {
-        $blog = BlogPost::where('post_slug', $slug)->first();
+        $blog = BlogPost::with('user')->where('post_slug', $slug)->first();
         if (! $blog) {
             abort(404);
         }
@@ -241,7 +241,7 @@ class BlogController extends Controller
             abort(404);
         }
 
-        $blog = BlogPost::where('blogcat_id', $id)->get();
+        $blog = BlogPost::with('user')->where('blogcat_id', $id)->get();
         $bcategory = BlogCategory::latest()->get();
         $lpost = BlogPost::latest()->limit(3)->get();
 
@@ -252,7 +252,7 @@ class BlogController extends Controller
     public function BlogList()
     {
 
-        $blog = BlogPost::latest()->paginate(3);
+        $blog = BlogPost::with('user')->latest()->paginate(3);
         $bcategory = BlogCategory::latest()->get();
         $lpost = BlogPost::latest()->limit(3)->get();
 

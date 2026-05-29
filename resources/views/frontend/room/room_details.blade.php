@@ -281,7 +281,7 @@
                         <div class="col-lg-7 col-md-8 p-0">
                             <div class="room-card-content">
                                  <h3>
-             <a href="{{ url('room/details/'.$item->id) }}">{{ $item['type']['name'] }}</a>
+             <a href="{{ url('room/details/'.$item->id) }}">{{ $item->type->name ?? 'Room' }}</a>
                                 </h3>
                                 <span>{{ $item->price }} / Per Night </span>
                                 <div class="rating">

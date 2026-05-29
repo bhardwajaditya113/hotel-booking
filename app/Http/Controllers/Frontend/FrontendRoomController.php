@@ -18,7 +18,7 @@ class FrontendRoomController extends Controller
 {
     public function AllFrontendRoomList(){
 
-        $rooms = Room::latest()->get();
+        $rooms = Room::with(['type', 'property.type'])->latest()->get();
         return view('frontend.room.all_rooms',compact('rooms'));
     } // End Method 
 
@@ -80,7 +80,7 @@ class FrontendRoomController extends Controller
 
         $check_date_booking_ids = RoomBookedDate::whereIn('book_date',$dt_array)->distinct()->pluck('booking_id')->toArray();
 
-        $rooms = Room::withCount('room_numbers')->where('status',1)->get();
+        $rooms = Room::withCount('room_numbers')->with(['type'])->where('status',1)->get();
 
         // Precompute availability per room to avoid DB queries in the view
         $availability = [];

@@ -34,7 +34,7 @@
                         <img src="{{ $item->image_url }}" alt="" style="width: 550px; height:300px; object-fit: cover;">
                     </a>
                     <div class="content">
-                        <h6><a href="{{ url('room/details/'.$item->id) }}">{{ $item['type']['name'] }}</a></h6>
+                        <h6><a href="{{ url('room/details/'.$item->id) }}">{{ $item->type->name ?? 'Room' }}</a></h6>
                         @if($item->property)
                         <div class="mb-1 text-xs text-gray-600">
                             <span class="badge bg-info">{{ $item->property->type->name ?? 'Property' }}</span>

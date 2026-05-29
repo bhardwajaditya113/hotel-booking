@@ -33,7 +33,7 @@
                             
                             <li>
                                 <i class='bx bx-user'></i>
-                                {{ $blog['user']['name'] }}
+                                {{ $blog->user->name ?? __('frontend.common.guest') }}
                             </li>
 
                             <li>
@@ -57,8 +57,8 @@
                         <ul>
                             @foreach ($comments as $com) 
                             <li>
-                                <img src="{{ (!empty($com->user->photo)) ? url('upload/user_images/'.$com->user->photo) : url('upload/no_image.jpg') }}" alt="Image" style="width: 50px; height:50px;">
-                                <h3>{{ $com->user->name }}</h3>
+                                <img src="{{ (!empty($com->user?->photo)) ? url('upload/user_images/'.$com->user->photo) : url('upload/no_image.jpg') }}" alt="Image" style="width: 50px; height:50px;">
+                                <h3>{{ $com->user->name ?? __('frontend.common.guest') }}</h3>
                                 <span>{{ $com->created_at->format('M d Y') }}</span>
                                 <p>
                                     {{ $com->message }}

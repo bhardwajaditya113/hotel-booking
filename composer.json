@@ -9,6 +9,8 @@
     "license": "MIT",
     "require": {
         "php": "^8.1",
+        "ext-pdo_pgsql": "*",
+        "ext-pgsql": "*",
         "barryvdh/laravel-dompdf": "^2.0",
         "doctrine/dbal": "^3.0",
         "guzzlehttp/guzzle": "^7.2",

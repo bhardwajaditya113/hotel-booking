@@ -1,8 +1,7 @@
 [phases.setup]
-nixPkgs = ["php83", "php83Packages.composer"]
+nixPkgs = ["php83", "php83Packages.composer", "php83Extensions.pdo_pgsql"]
 
 [phases.build]
 cmds = ["composer install --no-dev"]
 
 [phases.release]
-cmds = ["docker-php-ext-install pdo_pgsql"]

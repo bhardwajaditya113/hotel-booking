@@ -38,6 +38,25 @@ Route::get('/debug/session', function () {
     ]);
 });
 
+Route::get('/debug/test-rooms', function () {
+    try {
+        $rooms = \App\Models\Room::with('type')->limit(5)->get();
+        return response()->json([
+            'success' => true,
+            'count' => $rooms->count(),
+            'rooms' => $rooms->toArray(),
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'error' => true,
+            'message' => $e->getMessage(),
+            'trace' => $e->getTraceAsString(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
+        ], 500);
+    }
+});
+
 // About Page
 Route::get('/about', function () {
     return view('frontend.about.about');
